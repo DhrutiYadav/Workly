@@ -29,5 +29,9 @@ namespace Workly.Models
         [Required]
         [StringLength(100)]
         public string Department { get; set; } = string.Empty;
+
+        [DataType(DataType.Date)]
+        [Display(Name = "Date of Joining")]
+        public DateTime DateOfJoining { get; set; }
     }
 }

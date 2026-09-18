@@ -11,24 +11,47 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Workly</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
+        <nav class="border-b border-gray-200 bg-white">
+
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+
+                <div class="flex h-16 items-center justify-between">
+
+                    <!-- Logo -->
+                    <a asp-controller="Home"
+                       asp-action="Index"
+                       class="text-2xl font-bold text-gray-900 no-underline">
+                        Workly
+                    </a>
+
+
+                    <!-- Navigation Links -->
+                    <div class="flex items-center gap-2">
+
+                        <a asp-controller="Home"
+                           asp-action="Index"
+                           class="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 no-underline transition hover:bg-gray-100 hover:text-gray-900">
+                            Home
+                        </a>
+
+                        <a asp-controller="Users"
+                           asp-action="Index"
+                           class="rounded-lg bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-600 no-underline transition hover:bg-blue-100">
+                            Users
+                        </a>
+
+                        <a asp-controller="Home"
+                           asp-action="Privacy"
+                           class="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 no-underline transition hover:bg-gray-100 hover:text-gray-900">
+                            Privacy
+                        </a>
+
+                    </div>
+
                 </div>
+
             </div>
+
         </nav>
     </header>
     <div class="container">
@@ -45,6 +68,8 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

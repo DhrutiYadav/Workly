@@ -1,65 +1,253 @@
 @model IEnumerable<Workly.Models.User>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Users";
 }
 
-<h1>Index</h1>
+<div class="min-h-screen bg-gray-50 py-8">
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.FullName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Email)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Password)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Role)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Salary)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Department)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(model => item.FullName)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Email)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Password)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Role)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Salary)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Department)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+
+        <!-- Page Header -->
+        <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight text-gray-900">
+                    Users
+                </h1>
+
+                <p class="mt-1 text-sm text-gray-500">
+                    Manage employees and their information
+                </p>
+            </div>
+
+            <a asp-action="Create"
+               class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+
+                <span class="mr-2 text-lg">+</span>
+                Add User
+
+            </a>
+
+        </div>
+
+
+        <!-- Users Card -->
+        <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+
+            <div class="overflow-x-auto">
+
+                <table class="min-w-full divide-y divide-gray-200">
+
+                    <!-- Table Header -->
+                    <thead class="bg-gray-50">
+
+                        <tr>
+
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                Full Name
+                            </th>
+
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                Email
+                            </th>
+
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                Role
+                            </th>
+
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                Salary
+                            </th>
+
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                Department
+                            </th>
+
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                Date of Joining
+                            </th>
+
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                Actions
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <!-- Table Body -->
+                    <tbody class="divide-y divide-gray-100 bg-white">
+
+                        @foreach (var item in Model)
+                        {
+                            <tr class="transition hover:bg-gray-50">
+
+                                <!-- Full Name -->
+                                <td class="whitespace-nowrap px-6 py-4">
+
+                                    <div class="font-semibold text-gray-900">
+                                        @item.FullName
+                                    </div>
+
+                                </td>
+
+
+                                <!-- Email -->
+                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-600">
+                                    @item.Email
+                                </td>
+
+
+                                <!-- Role -->
+                                <td class="whitespace-nowrap px-6 py-4">
+
+                                    <span class="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                                        @item.Role
+                                    </span>
+
+                                </td>
+
+
+                                <!-- Salary -->
+                                <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-700">
+                                    ₹@item.Salary
+                                </td>
+
+
+                                <!-- Department -->
+                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-600">
+                                    @item.Department
+                                </td>
+
+
+                                <!-- Date -->
+                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-600">
+                                    @item.DateOfJoining.ToString("dd MMM yyyy")
+                                </td>
+
+                                <!-- Actions -->
+                                <td class="whitespace-nowrap px-6 py-4">
+
+                                    <div class="flex items-center gap-2">
+
+                                        <!-- Edit -->
+                                        <a asp-action="Edit"
+                                           asp-route-id="@item.Id"
+                                           title="Edit User"
+                                           class="inline-flex items-center gap-1.5 rounded-md bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 transition hover:bg-amber-100">
+
+                                            <!-- Edit Icon -->
+                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                 fill="none"
+                                                 viewBox="0 0 24 24"
+                                                 stroke-width="1.8"
+                                                 stroke="currentColor"
+                                                 class="h-4 w-4">
+
+                                                <path stroke-linecap="round"
+                                                      stroke-linejoin="round"
+                                                      d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 15.87a4.5 4.5 0 0 1-1.897 1.13L6 18l.999-2.685a4.5 4.5 0 0 1 1.13-1.897L16.862 4.487Z" />
+
+                                                <path stroke-linecap="round"
+                                                      stroke-linejoin="round"
+                                                      d="M19.5 7.125 16.875 4.5" />
+
+                                            </svg>
+
+                                            Edit
+                                        </a>
+
+
+                                        <!-- Details -->
+                                        <a asp-action="Details"
+                                           asp-route-id="@item.Id"
+                                           title="View Details"
+                                           class="inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-200">
+
+                                            <!-- Eye Icon -->
+                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                 fill="none"
+                                                 viewBox="0 0 24 24"
+                                                 stroke-width="1.8"
+                                                 stroke="currentColor"
+                                                 class="h-4 w-4">
+
+                                                <path stroke-linecap="round"
+                                                      stroke-linejoin="round"
+                                                      d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.64 0 8.577 3.01 9.964 7.178.07.21.07.438 0 .644C20.577 16.49 16.64 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
+
+                                                <path stroke-linecap="round"
+                                                      stroke-linejoin="round"
+                                                      d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+
+                                            </svg>
+
+                                            Details
+                                        </a>
+
+
+                                        <!-- Delete -->
+                                        <a asp-action="Delete"
+                                           asp-route-id="@item.Id"
+                                           title="Delete User"
+                                           class="inline-flex items-center gap-1.5 rounded-md bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100">
+
+                                            <!-- Trash Icon -->
+                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                 fill="none"
+                                                 viewBox="0 0 24 24"
+                                                 stroke-width="1.8"
+                                                 stroke="currentColor"
+                                                 class="h-4 w-4">
+
+                                                <path stroke-linecap="round"
+                                                      stroke-linejoin="round"
+                                                      d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673A2.25 2.25 0 0 1 15.916 21.75H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12.034.562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.532 0V4.5a2.25 2.25 0 0 0-2.25-2.25h-3a2.25 2.25 0 0 0-2.25 2.25v.528m7.532 0a48.7 48.7 0 0 0-7.532 0" />
+
+                                            </svg>
+
+                                            Delete
+                                        </a>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- Empty State -->
+            @if (!Model.Any())
+            {
+                <div class="px-6 py-16 text-center">
+
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        No Users Found
+                    </h3>
+
+                    <p class="mt-2 text-sm text-gray-500">
+                        There are currently no users in the system.
+                    </p>
+
+                    <a asp-action="Create"
+                       class="mt-5 inline-flex rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700">
+                        Add Your First User
+                    </a>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>

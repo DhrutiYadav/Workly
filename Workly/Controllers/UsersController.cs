@@ -8,7 +8,7 @@ public class UsersController : Controller
 {
     private readonly ApplicationDbContext _context;
 
-    public UsersController(ApplicationDbContext context)
+    public UsersController(ApplicationDbContext context) 
     {
         _context = context;
     }
@@ -40,7 +40,12 @@ public class UsersController : Controller
     // GET: USERS/Create
     public IActionResult Create()
     {
-        return View();
+        var user = new User
+        {
+            DateOfJoining = DateTime.Today
+        };
+
+        return View(user);
     }
 
     // POST: USERS/Create
@@ -48,7 +53,7 @@ public class UsersController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("Id,FullName,Email,Password,Role,Salary,Department")] User user)
+    public async Task<IActionResult> Create([Bind("Id,FullName,Email,Password,Role,Salary,Department,DateOfJoining")] User user)
     {
         if (ModelState.IsValid)
         {
@@ -80,7 +85,7 @@ public class UsersController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int? id, [Bind("Id,FullName,Email,Password,Role,Salary,Department")] User user)
+    public async Task<IActionResult> Edit(int? id, [Bind("Id,FullName,Email,Password,Role,Salary,Department,DateOfJoining")] User user)
     {
         if (id != user.Id)
         {

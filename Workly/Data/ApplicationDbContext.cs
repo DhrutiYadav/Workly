@@ -17,6 +17,10 @@ namespace Workly.Data
             modelBuilder.Entity<User>()
                 .Property(u => u.Salary)
                 .HasPrecision(18, 2);
+
+            modelBuilder.Entity<User>()
+            .Property(u => u.Role)
+            .HasConversion<string>();
         }
     }
 }
