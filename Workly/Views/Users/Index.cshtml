@@ -31,6 +31,80 @@
 
         </div>
 
+        <!-- Search -->
+        <div class="mb-5 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+
+            <form asp-action="Index"
+                  method="get"
+                  class="flex flex-col gap-3 sm:flex-row">
+
+                <div class="relative flex-1">
+
+                    <input type="text"
+                           name="search"
+                           value="@ViewBag.Search"
+                           placeholder="Search by name, email, role or department..."
+                           class="block w-full rounded-lg border border-gray-300 px-4 py-2.5 pl-10 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+
+                    <!-- Search Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke-width="1.8"
+                         stroke="currentColor"
+                         class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400">
+
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="m21 21-4.35-4.35m0 0A7.5 7.5 0 1 0 6.04 6.04a7.5 7.5 0 0 0 10.61 10.61Z" />
+
+                    </svg>
+
+                </div>
+
+
+                <button type="submit"
+                        class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700">
+                    Search
+                </button>
+
+
+                @if (!string.IsNullOrWhiteSpace(ViewBag.Search))
+                {
+                    <a asp-action="Index"
+                       class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 no-underline transition hover:bg-gray-50">
+                        Clear
+                    </a>
+                }
+
+            </form>
+
+        </div>
+
+        <!-- User Count -->
+        <div class="mb-3 flex items-center justify-between">
+
+            <p class="text-sm text-gray-500">
+
+                @if (!string.IsNullOrWhiteSpace(ViewBag.Search))
+                {
+                    <span>
+                        Showing <span class="font-semibold text-gray-700">@Model.Count()</span>
+                        user(s) for
+                        "<span class="font-semibold text-gray-700">@ViewBag.Search</span>"
+                    </span>
+                }
+                else
+                {
+                    <span>
+                        <span class="font-semibold text-gray-700">@Model.Count()</span>
+                        user(s) found
+                    </span>
+                }
+
+            </p>
+
+        </div>
 
         <!-- Users Card -->
         <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
@@ -224,6 +298,96 @@
 
             </div>
 
+            @if (ViewBag.TotalPages > 1)
+            {
+                <div class="flex flex-col items-center justify-between gap-4 border-t border-gray-100 px-6 py-4 sm:flex-row">
+
+                    <!-- Page Information -->
+                    <p class="text-sm text-gray-500">
+                        Page
+                        <span class="font-semibold text-gray-700">
+                            @ViewBag.CurrentPage
+                        </span>
+                        of
+                        <span class="font-semibold text-gray-700">
+                            @ViewBag.TotalPages
+                        </span>
+                    </p>
+
+
+                    <!-- Pagination -->
+                    <div class="flex items-center gap-1">
+
+                        <!-- Previous -->
+                        @if (ViewBag.CurrentPage > 1)
+                        {
+                            <a asp-action="Index"
+                               asp-route-search="@ViewBag.Search"
+                               asp-route-page="@(ViewBag.CurrentPage - 1)"
+                               class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 no-underline transition hover:bg-gray-50">
+
+                                ← Previous
+
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="inline-flex cursor-not-allowed items-center rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-sm font-medium text-gray-400">
+
+                                ← Previous
+
+                            </span>
+                        }
+
+
+                        <!-- Page Numbers -->
+                        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                        {
+                            if (i == ViewBag.CurrentPage)
+                            {
+                                <span class="inline-flex h-9 min-w-9 items-center justify-center rounded-lg bg-blue-600 px-3 text-sm font-semibold text-white">
+                                    @i
+                                </span>
+                            }
+                            else
+                            {
+                                <a asp-action="Index"
+                                   asp-route-search="@ViewBag.Search"
+                                   asp-route-page="@i"
+                                   class="inline-flex h-9 min-w-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 no-underline transition hover:bg-gray-50">
+
+                                    @i
+
+                                </a>
+                            }
+                        }
+
+
+                        <!-- Next -->
+                        @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                        {
+                            <a asp-action="Index"
+                               asp-route-search="@ViewBag.Search"
+                               asp-route-page="@(ViewBag.CurrentPage + 1)"
+                               class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 no-underline transition hover:bg-gray-50">
+
+                                Next →
+
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="inline-flex cursor-not-allowed items-center rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-sm font-medium text-gray-400">
+
+                                Next →
+
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+            }
 
             <!-- Empty State -->
             @if (!Model.Any())

@@ -8,15 +8,58 @@ public class UsersController : Controller
 {
     private readonly ApplicationDbContext _context;
 
-    public UsersController(ApplicationDbContext context) 
+    public UsersController(ApplicationDbContext context)
     {
         _context = context;
     }
 
     // GET: USERS
-    public async Task<IActionResult> Index()    
+    public async Task<IActionResult> Index(string search, int page = 1)
     {
-        return View(await _context.Users.ToListAsync());
+        const int pageSize = 10;
+
+        var users = _context.Users.AsQueryable();
+
+        // Search
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            users = users.Where(u =>
+                u.FullName.Contains(search) ||
+                u.Email.Contains(search) ||
+                u.Role.ToString().Contains(search) ||
+                u.Department.Contains(search));
+        }
+
+        // Total number of users after search
+        var totalUsers = await users.CountAsync();
+
+        // Total pages
+        var totalPages = (int)Math.Ceiling(totalUsers / (double)pageSize);
+
+        // Make sure page is valid
+        if (page < 1)
+        {
+            page = 1;
+        }
+
+        if (totalPages > 0 && page > totalPages)
+        {
+            page = totalPages;
+        }
+
+        // Get users for current page
+        var usersOnPage = await users
+            .OrderBy(u => u.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        ViewBag.Search = search;
+        ViewBag.CurrentPage = page;
+        ViewBag.TotalPages = totalPages;
+        ViewBag.TotalUsers = totalUsers;
+
+        return View(usersOnPage);
     }
 
     // GET: USERS/Details/5
