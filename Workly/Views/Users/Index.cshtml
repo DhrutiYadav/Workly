@@ -36,8 +36,9 @@
 
             <form asp-action="Index"
                   method="get"
-                  class="flex flex-col gap-3 sm:flex-row">
+                  class="flex flex-col gap-3 lg:flex-row">
 
+                <!-- Search Input -->
                 <div class="relative flex-1">
 
                     <input type="text"
@@ -62,18 +63,101 @@
 
                 </div>
 
+                <!-- Sort -->
+                <select name="sortOrder"
+                        class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
 
+                    @if (string.IsNullOrEmpty(ViewBag.SortOrder))
+                    {
+                        <option value="" selected>Sort by Name</option>
+                    }
+                    else
+                    {
+                        <option value="">Sort by Name</option>
+                    }
+
+                    @if (ViewBag.SortOrder == "name_desc")
+                    {
+                        <option value="name_desc" selected>Name (Z-A)</option>
+                    }
+                    else
+                    {
+                        <option value="name_desc">Name (Z-A)</option>
+                    }
+
+                    @if (ViewBag.SortOrder == "salary_asc")
+                    {
+                        <option value="salary_asc" selected>Salary (Low to High)</option>
+                    }
+                    else
+                    {
+                        <option value="salary_asc">Salary (Low to High)</option>
+                    }
+
+                    @if (ViewBag.SortOrder == "salary_desc")
+                    {
+                        <option value="salary_desc" selected>Salary (High to Low)</option>
+                    }
+                    else
+                    {
+                        <option value="salary_desc">Salary (High to Low)</option>
+                    }
+
+                    @if (ViewBag.SortOrder == "date_asc")
+                    {
+                        <option value="date_asc" selected>Joining Date (Oldest)</option>
+                    }
+                    else
+                    {
+                        <option value="date_asc">Joining Date (Oldest)</option>
+                    }
+
+                    @if (ViewBag.SortOrder == "date_desc")
+                    {
+                        <option value="date_desc" selected>Joining Date (Newest)</option>
+                    }
+                    else
+                    {
+                        <option value="date_desc">Joining Date (Newest)</option>
+                    }
+
+                    @if (ViewBag.SortOrder == "role")
+                    {
+                        <option value="role" selected>Role</option>
+                    }
+                    else
+                    {
+                        <option value="role">Role</option>
+                    }
+
+                    @if (ViewBag.SortOrder == "department")
+                    {
+                        <option value="department" selected>Department</option>
+                    }
+                    else
+                    {
+                        <option value="department">Department</option>
+                    }
+
+                </select>
+
+                <!-- Search Button -->
                 <button type="submit"
                         class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700">
+
                     Search
+
                 </button>
 
-
-                @if (!string.IsNullOrWhiteSpace(ViewBag.Search))
+                <!-- Clear -->
+                @if (!string.IsNullOrWhiteSpace(ViewBag.Search) ||
+                     !string.IsNullOrWhiteSpace(ViewBag.SortOrder))
                 {
                     <a asp-action="Index"
                        class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 no-underline transition hover:bg-gray-50">
+
                         Clear
+
                     </a>
                 }
 
@@ -323,6 +407,7 @@
                         {
                             <a asp-action="Index"
                                asp-route-search="@ViewBag.Search"
+                               asp-route-sortOrder="@ViewBag.SortOrder"
                                asp-route-page="@(ViewBag.CurrentPage - 1)"
                                class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 no-underline transition hover:bg-gray-50">
 
@@ -353,6 +438,7 @@
                             {
                                 <a asp-action="Index"
                                    asp-route-search="@ViewBag.Search"
+                                   asp-route-sortOrder="@ViewBag.SortOrder"
                                    asp-route-page="@i"
                                    class="inline-flex h-9 min-w-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 no-underline transition hover:bg-gray-50">
 
@@ -368,6 +454,7 @@
                         {
                             <a asp-action="Index"
                                asp-route-search="@ViewBag.Search"
+                               asp-route-sortOrder="@ViewBag.SortOrder"
                                asp-route-page="@(ViewBag.CurrentPage + 1)"
                                class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 no-underline transition hover:bg-gray-50">
 

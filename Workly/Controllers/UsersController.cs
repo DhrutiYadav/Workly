@@ -14,7 +14,10 @@ public class UsersController : Controller
     }
 
     // GET: USERS
-    public async Task<IActionResult> Index(string search, int page = 1)
+    public async Task<IActionResult> Index(
+    string search,
+    string sortOrder,
+    int page = 1)
     {
         const int pageSize = 10;
 
@@ -26,15 +29,52 @@ public class UsersController : Controller
             users = users.Where(u =>
                 u.FullName.Contains(search) ||
                 u.Email.Contains(search) ||
-                u.Role.ToString().Contains(search) ||
-                u.Department.Contains(search));
+                u.Department.Contains(search) ||
+                u.Role.ToString().Contains(search));
         }
 
-        // Total number of users after search
+        // Sorting
+        switch (sortOrder)
+        {
+            case "name_desc":
+                users = users.OrderByDescending(u => u.FullName);
+                break;
+
+            case "salary_asc":
+                users = users.OrderBy(u => u.Salary);
+                break;
+
+            case "salary_desc":
+                users = users.OrderByDescending(u => u.Salary);
+                break;
+
+            case "date_asc":
+                users = users.OrderBy(u => u.DateOfJoining);
+                break;
+
+            case "date_desc":
+                users = users.OrderByDescending(u => u.DateOfJoining);
+                break;
+
+            case "role":
+                users = users.OrderBy(u => u.Role);
+                break;
+
+            case "department":
+                users = users.OrderBy(u => u.Department);
+                break;
+
+            default:
+                users = users.OrderBy(u => u.FullName);
+                break;
+        }
+
+        // Total users
         var totalUsers = await users.CountAsync();
 
         // Total pages
-        var totalPages = (int)Math.Ceiling(totalUsers / (double)pageSize);
+        var totalPages = (int)Math.Ceiling(
+            totalUsers / (double)pageSize);
 
         // Make sure page is valid
         if (page < 1)
@@ -47,21 +87,20 @@ public class UsersController : Controller
             page = totalPages;
         }
 
-        // Get users for current page
+        // Pagination
         var usersOnPage = await users
-            .OrderBy(u => u.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
 
         ViewBag.Search = search;
+        ViewBag.SortOrder = sortOrder;
         ViewBag.CurrentPage = page;
         ViewBag.TotalPages = totalPages;
         ViewBag.TotalUsers = totalUsers;
 
         return View(usersOnPage);
     }
-
     // GET: USERS/Details/5
     public async Task<IActionResult> Details(int? id)
     {
