@@ -1,4 +1,5 @@
-@model Workly.Models.User
+@model Workly.Models.UserFormViewModel
+@* @model Workly.Models.User *@
 
 @{
     ViewData["Title"] = "Edit User";
@@ -79,19 +80,20 @@
 
                 <!-- Password -->
                 <div class="mb-5">
-
                     <label asp-for="Password"
                            class="mb-2 block text-sm font-semibold text-gray-700">
+                        New Password (Optional)
                     </label>
 
                     <input asp-for="Password"
                            type="password"
+                           autocomplete="new-password"
+                           placeholder="Leave blank to keep the current password"
                            class="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
 
                     <span asp-validation-for="Password"
                           class="mt-1 block text-sm text-red-600">
                     </span>
-
                 </div>
 
 
