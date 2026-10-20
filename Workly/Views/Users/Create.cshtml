@@ -167,6 +167,22 @@
 
                     </div>
 
+                    <!-- Salary Type -->
+                    <div class="mb-5">
+                        <label asp-for="SalaryType"
+                               class="mb-2 block text-sm font-semibold text-gray-700">
+                        </label>
+
+                        <select asp-for="SalaryType"
+                                asp-items="Html.GetEnumSelectList<Workly.Models.SalaryType>()"
+                                class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                        </select>
+
+                        <span asp-validation-for="SalaryType"
+                              class="mt-1 block text-sm text-red-600">
+                        </span>
+                    </div>
+
 
                     <!-- Date of Joining -->
                     <div class="mb-5">

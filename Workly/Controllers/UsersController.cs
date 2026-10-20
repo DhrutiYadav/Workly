@@ -220,6 +220,7 @@ public class UsersController : Controller
             Email = model.Email,
             Role = model.Role,
             Salary = model.Salary,
+            SalaryType = model.SalaryType,
             Department = model.Department,
             DateOfJoining = model.DateOfJoining
         };
@@ -263,6 +264,7 @@ public class UsersController : Controller
             Email = user.Email,
             Role = user.Role,
             Salary = user.Salary,
+            SalaryType = user.SalaryType,
             Department = user.Department,
             DateOfJoining = user.DateOfJoining
         };
@@ -303,6 +305,7 @@ public class UsersController : Controller
         {
             ModelState.Remove(nameof(model.Role));
             ModelState.Remove(nameof(model.Salary));
+            ModelState.Remove(nameof(model.SalaryType));
             ModelState.Remove(nameof(model.Department));
             ModelState.Remove(nameof(model.Password));
         }
@@ -332,6 +335,7 @@ public class UsersController : Controller
                 // Only Admin can change these fields.
                 existingUser.Role = model.Role;
                 existingUser.Salary = model.Salary;
+                existingUser.SalaryType = model.SalaryType;
                 existingUser.Department = model.Department;
 
                 // Only Admin can change an employee's password here.
@@ -359,6 +363,7 @@ public class UsersController : Controller
         {
             model.Role = existingUser.Role;
             model.Salary = existingUser.Salary;
+            model.SalaryType = existingUser.SalaryType;
             model.Department = existingUser.Department;
             model.Password = null;
         }
