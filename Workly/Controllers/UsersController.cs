@@ -1,9 +1,11 @@
 
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Workly.Models;
 using Workly.Data;
-using Microsoft.AspNetCore.Identity;
+using Workly.Models;
+[Authorize(Roles = "Admin")]
 public class UsersController : Controller
 {
     private readonly ApplicationDbContext _context;
@@ -14,7 +16,6 @@ public class UsersController : Controller
         _context = context;
     }
 
-    // GET: USERS
     // GET: USERS
     public async Task<IActionResult> Index(
         string search,

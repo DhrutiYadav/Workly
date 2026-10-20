@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Workly.Data;
 
@@ -9,6 +10,30 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+
+// Cookie Authentication
+builder.Services
+    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+
+        options.AccessDeniedPath = "/Account/AccessDenied";
+
+        options.Cookie.Name = "Workly.Auth";
+
+        options.Cookie.HttpOnly = true;
+
+        options.Cookie.SameSite = SameSiteMode.Lax;
+
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+
+        options.SlidingExpiration = true;
+    });
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -23,6 +48,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();

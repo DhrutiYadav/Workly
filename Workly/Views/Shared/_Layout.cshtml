@@ -34,17 +34,41 @@
                             Home
                         </a>
 
-                        <a asp-controller="Users"
-                           asp-action="Index"
-                           class="rounded-lg bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-600 no-underline transition hover:bg-blue-100">
-                            Users
-                        </a>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a asp-controller="Users"
+                                   asp-action="Index"
+                                   class="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 no-underline transition hover:bg-gray-100">
+                                    Users
+                                </a>
+                            }
 
-                        <a asp-controller="Home"
-                           asp-action="Privacy"
-                           class="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 no-underline transition hover:bg-gray-100 hover:text-gray-900">
-                            Privacy
-                        </a>
+                            <span class="px-3 text-sm font-medium text-gray-700">
+                                Hello, @User.Identity.Name
+                            </span>
+
+                            <form asp-controller="Account"
+                                  asp-action="Logout"
+                                  method="post"
+                                  class="inline">
+
+                                <button type="submit"
+                                        class="rounded-lg bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100">
+                                    Logout
+                                </button>
+
+                            </form>
+                        }
+                        else
+                        {
+                            <a asp-controller="Account"
+                               asp-action="Login"
+                               class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white no-underline hover:bg-blue-700">
+                                Login
+                            </a>
+                        }
 
                     </div>
 

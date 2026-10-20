@@ -1,0 +1,35 @@
+﻿@{
+    ViewData["Title"] = "Access Denied";
+}
+
+<div class="container d-flex justify-content-center align-items-center"
+     style="min-height: 65vh;">
+
+    <div class="card shadow-lg border-0 text-center p-5"
+         style="max-width: 550px; border-radius: 16px;">
+
+        <div class="mb-3">
+            <span style="font-size: 64px; color: #dc3545;">
+                &#9888;
+            </span>
+        </div>
+
+        <h1 class="fw-bold text-danger mb-3">
+            Access Denied
+        </h1>
+
+        <p class="text-muted mb-4">
+            You do not have permission to access this page.
+            Please contact your administrator if you need access.
+        </p>
+
+        <div>
+            <a asp-controller="Home"
+               asp-action="Index"
+               class="btn btn-primary px-4 py-2">
+                Return to Home
+            </a>
+        </div>
+
+    </div>
+</div>
