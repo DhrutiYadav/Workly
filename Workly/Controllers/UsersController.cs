@@ -5,7 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Workly.Data;
 using Workly.Models;
-[Authorize(Roles = "Admin")]
+using System.Security.Claims;
+[Authorize(Roles = "Admin,Manager")]
 public class UsersController : Controller
 {
     private readonly ApplicationDbContext _context;
@@ -24,7 +25,32 @@ public class UsersController : Controller
     {
         const int pageSize = 10;
 
-        var users = _context.Users.AsQueryable();
+        IQueryable<User> users = _context.Users;
+
+        if (User.IsInRole("Manager"))
+        {
+            var currentUserId = User.FindFirstValue(
+                ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(currentUserId, out int managerId))
+            {
+                return Forbid();
+            }
+
+            var manager = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == managerId);
+
+            if (manager == null)
+            {
+                return Forbid();
+            }
+
+            // Managers can see only regular employees
+            // in their own department.
+            users = users.Where(u =>
+                u.Department == manager.Department &&
+                u.Role == Role.User);
+        }
 
         // Search
         if (!string.IsNullOrWhiteSpace(search))
@@ -142,6 +168,7 @@ public class UsersController : Controller
     }
 
     // GET: USERS/Create
+    [Authorize(Roles = "Admin")]
     public IActionResult Create()
     {
         var model = new UserFormViewModel
@@ -156,6 +183,7 @@ public class UsersController : Controller
     // To protect from overposting attacks, enable the specific properties you want to bind to.
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     // POST: USERS/Create
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(UserFormViewModel model)
@@ -207,7 +235,7 @@ public class UsersController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    // GET: USERS/Edit/5
+    // GET: Users/Edit/5
     public async Task<IActionResult> Edit(int? id)
     {
         if (id == null)
@@ -215,86 +243,131 @@ public class UsersController : Controller
             return NotFound();
         }
 
-        var user = await _context.Users.FindAsync(id);
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.Id == id);
+
         if (user == null)
         {
             return NotFound();
         }
-        return View(user);
+
+        if (!await CanManageEmployeeAsync(user))
+        {
+            return NotFound();
+        }
+
+        var model = new UserFormViewModel
+        {
+            Id = user.Id,
+            FullName = user.FullName,
+            Email = user.Email,
+            Role = user.Role,
+            Salary = user.Salary,
+            Department = user.Department,
+            DateOfJoining = user.DateOfJoining
+        };
+
+        return View(model);
     }
 
-    // POST: USERS/Edit/5
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-    // POST: USERS/Edit
+    // POST: Users/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(
         int? id,
-        [Bind("Id,FullName,Email,Password,Role,Salary,Department,DateOfJoining")] User user)
+        UserFormViewModel model)
     {
-        if (id != user.Id)
+        if (id != model.Id)
         {
             return NotFound();
         }
 
         var existingUser = await _context.Users
-            .FirstOrDefaultAsync(u => u.Id == user.Id);
+            .FirstOrDefaultAsync(u => u.Id == model.Id);
 
         if (existingUser == null)
         {
             return NotFound();
         }
 
-        // Preserve the existing password hash
-        user.PasswordHash = existingUser.PasswordHash;
-
-        // If a new password was entered, hash it
-        if (!string.IsNullOrWhiteSpace(user.Password))
+        // Check authorization using the existing database record.
+        if (!await CanManageEmployeeAsync(existingUser))
         {
-            user.PasswordHash = _passwordHasher.HashPassword(
-                user,
-                user.Password);
-        }
-        else
-        {
-            // No new password: keep the current hash
-            ModelState.Remove(nameof(user.Password));
+            return NotFound();
         }
 
-        // Duplicate email validation
+        bool isAdmin = User.IsInRole("Admin");
+
+        // Managers cannot change protected fields.
+        if (!isAdmin)
+        {
+            ModelState.Remove(nameof(model.Role));
+            ModelState.Remove(nameof(model.Salary));
+            ModelState.Remove(nameof(model.Department));
+            ModelState.Remove(nameof(model.Password));
+        }
+
+        // Prevent duplicate email addresses.
         bool emailExists = await _context.Users
             .AnyAsync(u =>
-                u.Email == user.Email &&
-                u.Id != user.Id);
+                u.Email == model.Email &&
+                u.Id != model.Id);
 
         if (emailExists)
         {
             ModelState.AddModelError(
-                "Email",
+                nameof(model.Email),
                 "A user with this email already exists.");
         }
 
         if (ModelState.IsValid)
         {
-            // Update only the editable fields
-            existingUser.FullName = user.FullName;
-            existingUser.Email = user.Email;
-            existingUser.Role = user.Role;
-            existingUser.Salary = user.Salary;
-            existingUser.Department = user.Department;
-            existingUser.DateOfJoining = user.DateOfJoining;
-            existingUser.PasswordHash = user.PasswordHash;
+            // Fields both Admin and Manager can edit.
+            existingUser.FullName = model.FullName;
+            existingUser.Email = model.Email;
+            existingUser.DateOfJoining = model.DateOfJoining;
+
+            if (isAdmin)
+            {
+                // Only Admin can change these fields.
+                existingUser.Role = model.Role;
+                existingUser.Salary = model.Salary;
+                existingUser.Department = model.Department;
+
+                // Only Admin can change an employee's password here.
+                if (!string.IsNullOrWhiteSpace(model.Password))
+                {
+                    var passwordHasher = new PasswordHasher<User>();
+
+                    existingUser.PasswordHash =
+                        passwordHasher.HashPassword(
+                            existingUser,
+                            model.Password);
+                }
+            }
+
+            // Managers cannot change salary, role, department,
+            // or password, even if they modify the submitted form.
 
             await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
         }
 
-        return View(user);
+        // Restore protected values before redisplaying the form.
+        if (!isAdmin)
+        {
+            model.Role = existingUser.Role;
+            model.Salary = existingUser.Salary;
+            model.Department = existingUser.Department;
+            model.Password = null;
+        }
+
+        return View(model);
     }
 
     // GET: USERS/Delete/5
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int? id)
     {
         if (id == null)
@@ -313,6 +386,7 @@ public class UsersController : Controller
     }
 
     // POST: USERS/Delete/5
+    [Authorize(Roles = "Admin")]
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int? id)
@@ -330,5 +404,49 @@ public class UsersController : Controller
     private bool UserExists(int? id)
     {
         return _context.Users.Any(e => e.Id == id);
+    }
+
+    private async Task<User?> GetCurrentUserAsync()
+    {
+        var userId = User.FindFirstValue(
+            ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userId, out int id))
+        {
+            return null;
+        }
+
+        return await _context.Users
+            .FirstOrDefaultAsync(u => u.Id == id);
+    }
+
+    private async Task<bool> CanManageEmployeeAsync(User employee)
+    {
+        // Admin can manage every employee.
+        if (User.IsInRole("Admin"))
+        {
+            return true;
+        }
+
+        // Only Managers can use department-based access.
+        if (!User.IsInRole("Manager"))
+        {
+            return false;
+        }
+
+        var manager = await GetCurrentUserAsync();
+
+        if (manager == null)
+        {
+            return false;
+        }
+
+        // Managers can manage regular employees
+        // in their own department only.
+        return employee.Role == Role.User &&
+               string.Equals(
+                   manager.Department,
+                   employee.Department,
+                   StringComparison.OrdinalIgnoreCase);
     }
 }

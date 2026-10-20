@@ -5,6 +5,10 @@
     ViewData["Title"] = "Edit User";
 }
 
+@{
+    var isAdmin = User.IsInRole("Admin");
+}
+
 <div class="min-h-screen bg-gray-50 py-8">
 
     <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
@@ -79,22 +83,25 @@
 
 
                 <!-- Password -->
-                <div class="mb-5">
-                    <label asp-for="Password"
-                           class="mb-2 block text-sm font-semibold text-gray-700">
-                        New Password (Optional)
-                    </label>
+                @if (isAdmin)
+                {
+                    <div class="mb-5">
+                        <label asp-for="Password"
+                               class="mb-2 block text-sm font-semibold text-gray-700">
+                            New Password (Optional)
+                        </label>
 
-                    <input asp-for="Password"
-                           type="password"
-                           autocomplete="new-password"
-                           placeholder="Leave blank to keep the current password"
-                           class="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                        <input asp-for="Password"
+                               type="password"
+                               autocomplete="new-password"
+                               placeholder="Leave blank to keep the current password"
+                               class="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
 
-                    <span asp-validation-for="Password"
-                          class="mt-1 block text-sm text-red-600">
-                    </span>
-                </div>
+                        <span asp-validation-for="Password"
+                              class="mt-1 block text-sm text-red-600">
+                        </span>
+                    </div>
+                }
 
 
                 <!-- Role + Department -->
@@ -107,19 +114,29 @@
                                class="mb-2 block text-sm font-semibold text-gray-700">
                         </label>
 
-                        <select asp-for="Role"
-                                class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                        @if (isAdmin)
+                        {
+                            <select asp-for="Role"
+                                    class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900">
 
-                            <option value="">Select Role</option>
-                            <option value="Admin">Admin</option>
-                            <option value="Manager">Manager</option>
-                            <option value="User">User</option>
+                                <option value="Admin">Admin</option>
+                                <option value="Manager">Manager</option>
+                                <option value="User">User</option>
 
-                        </select>
+                            </select>
 
-                        <span asp-validation-for="Role"
-                              class="mt-1 block text-sm text-red-600">
-                        </span>
+                            <span asp-validation-for="Role"
+                                  class="mt-1 block text-sm text-red-600">
+                            </span>
+                        }
+                        else
+                        {
+                            <p class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-700">
+                                @Model.Role
+                            </p>
+
+                            <input type="hidden" asp-for="Role" />
+                        }
 
                     </div>
 
@@ -131,12 +148,23 @@
                                class="mb-2 block text-sm font-semibold text-gray-700">
                         </label>
 
-                        <input asp-for="Department"
-                               class="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                        @if (isAdmin)
+                        {
+                            <input asp-for="Department"
+                                   class="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900" />
 
-                        <span asp-validation-for="Department"
-                              class="mt-1 block text-sm text-red-600">
-                        </span>
+                            <span asp-validation-for="Department"
+                                  class="mt-1 block text-sm text-red-600">
+                            </span>
+                        }
+                        else
+                        {
+                            <p class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-700">
+                                @Model.Department
+                            </p>
+
+                            <input type="hidden" asp-for="Department" />
+                        }
 
                     </div>
 
@@ -152,16 +180,26 @@
                         <label asp-for="Salary"
                                class="mb-2 block text-sm font-semibold text-gray-700">
                         </label>
+                        @if (isAdmin)
+                        {
+                            <input asp-for="Salary"
+                                   type="number"
+                                   min="0"
+                                   step="0.01"
+                                   class="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900" />
 
-                        <input asp-for="Salary"
-                               type="number"
-                               min="0"
-                               step="0.01"
-                               class="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                            <span asp-validation-for="Salary"
+                                  class="mt-1 block text-sm text-red-600">
+                            </span>
+                        }
+                        else
+                        {
+                            <p class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-700">
+                                ₹@Model.Salary
+                            </p>
 
-                        <span asp-validation-for="Salary"
-                              class="mt-1 block text-sm text-red-600">
-                        </span>
+                            <input type="hidden" asp-for="Salary" />
+                        }
 
                     </div>
 

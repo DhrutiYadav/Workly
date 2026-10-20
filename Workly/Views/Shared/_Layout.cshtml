@@ -36,7 +36,7 @@
 
                         @if (User.Identity?.IsAuthenticated == true)
                         {
-                            @if (User.IsInRole("Admin"))
+                            @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
                             {
                                 <a asp-controller="Users"
                                    asp-action="Index"
