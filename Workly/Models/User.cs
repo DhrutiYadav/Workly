@@ -43,6 +43,9 @@ namespace Workly.Models
         public decimal Salary { get; set; }
 
         [Required]
+        public SalaryType SalaryType { get; set; } = SalaryType.MonthlySalary;
+
+        [Required]
         [StringLength(100)]
         public string Department { get; set; } = string.Empty;
 

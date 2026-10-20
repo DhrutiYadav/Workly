@@ -17,9 +17,11 @@ namespace Workly.Controllers
             _context = context;
         }
 
+
         // GET: /Attendance
-        // Display records according to the logged-in user's role.
-        public async Task<IActionResult> Index()
+        // Display attendance records according to the user's role
+        // and the selected month and year.
+        public async Task<IActionResult> Index(int? month, int? year)
         {
             var currentUser = await GetCurrentUserAsync();
 
@@ -28,19 +30,44 @@ namespace Workly.Controllers
                 return Forbid();
             }
 
+            // Default to the current month and year.
+            int selectedMonth = month ?? DateTime.Today.Month;
+            int selectedYear = year ?? DateTime.Today.Year;
+
+            // Validate the selected month.
+            if (selectedMonth < 1 || selectedMonth > 12)
+            {
+                selectedMonth = DateTime.Today.Month;
+            }
+
+            // Validate the selected year.
+            if (selectedYear < 1 || selectedYear > 9998)
+            {
+                selectedYear = DateTime.Today.Year;
+            }
+
+            // Calculate the beginning and end of the selected month.
+            var startDate = new DateTime(
+                selectedYear,
+                selectedMonth,
+                1);
+
+            var endDate = startDate.AddMonths(1);
+
             var query = _context.Attendances
                 .AsNoTracking()
                 .Include(a => a.Employee)
                 .AsQueryable();
 
+            // Admin can view all employees' attendance.
             if (currentUser.Role == Role.Admin)
             {
-                // Admin can view all attendance records.
+                // No employee restriction.
             }
+            // Manager can view their own attendance and regular
+            // employees in their department.
             else if (currentUser.Role == Role.Manager)
             {
-                // Manager can view their own attendance and the
-                // attendance of regular employees in their department.
                 query = query.Where(a =>
                     a.EmployeeId == currentUser.Id ||
                     (
@@ -49,18 +76,253 @@ namespace Workly.Controllers
                         a.Employee.Department == currentUser.Department
                     ));
             }
+            // Regular employees can view only their own attendance.
             else
             {
-                // Regular employees can view only their own records.
                 query = query.Where(a =>
                     a.EmployeeId == currentUser.Id);
             }
+
+            // Filter attendance records by the selected month.
+            query = query.Where(a =>
+                a.AttendanceDate >= startDate &&
+                a.AttendanceDate < endDate);
 
             var attendanceRecords = await query
                 .OrderByDescending(a => a.AttendanceDate)
                 .ToListAsync();
 
+            // Calculate attendance summary counts for the selected month.
+            ViewBag.PresentCount = attendanceRecords.Count(a =>
+                a.Status == AttendanceStatus.Present);
+
+            ViewBag.AbsentCount = attendanceRecords.Count(a =>
+                a.Status == AttendanceStatus.Absent);
+
+            ViewBag.HalfDayCount = attendanceRecords.Count(a =>
+                a.Status == AttendanceStatus.HalfDay);
+
+            ViewBag.LeaveCount = attendanceRecords.Count(a =>
+                a.Status == AttendanceStatus.Leave);
+
+            // Preserve the selected month and year for the view.
+            ViewBag.SelectedMonth = selectedMonth;
+            ViewBag.SelectedYear = selectedYear;
+
             return View(attendanceRecords);
+        }
+
+        // GET: /Attendance/Details/5
+        // Display attendance details according to the user's role.
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            var currentUser = await GetCurrentUserAsync();
+
+            if (currentUser == null)
+            {
+                return Forbid();
+            }
+
+            var attendance = await _context.Attendances
+                .AsNoTracking()
+                .Include(a => a.Employee)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (attendance == null)
+            {
+                return NotFound();
+            }
+
+            // Admin can view every attendance record.
+            if (currentUser.Role == Role.Admin)
+            {
+                return View(attendance);
+            }
+
+            // Managers can view their own attendance.
+            if (currentUser.Role == Role.Manager &&
+                attendance.EmployeeId == currentUser.Id)
+            {
+                return View(attendance);
+            }
+
+            // Managers can view regular employees in their department.
+            if (currentUser.Role == Role.Manager &&
+                attendance.Employee != null &&
+                attendance.Employee.Role == Role.User &&
+                attendance.Employee.Department == currentUser.Department)
+            {
+                return View(attendance);
+            }
+
+            // Regular employees can view only their own attendance.
+            if (currentUser.Role == Role.User &&
+                attendance.EmployeeId == currentUser.Id)
+            {
+                return View(attendance);
+            }
+
+            return Forbid();
+        }
+
+        // GET: /Attendance/Edit/5
+        // Display the edit form only if the current user has permission.
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var currentUser = await GetCurrentUserAsync();
+
+            if (currentUser == null)
+            {
+                return Forbid();
+            }
+
+            var attendance = await _context.Attendances
+                .Include(a => a.Employee)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (attendance == null)
+            {
+                return NotFound();
+            }
+
+            if (!CanEditAttendance(currentUser, attendance))
+            {
+                return Forbid();
+            }
+
+            return View(attendance);
+        }
+
+        // POST: /Attendance/Edit/5
+        // Update an attendance record after checking permissions and validation.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(
+            int id,
+            [Bind("AttendanceDate,Status,Notes")] Attendance model)
+        {
+            var currentUser = await GetCurrentUserAsync();
+
+            if (currentUser == null)
+            {
+                return Forbid();
+            }
+
+            var attendance = await _context.Attendances
+                .Include(a => a.Employee)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (attendance == null)
+            {
+                return NotFound();
+            }
+
+            if (!CanEditAttendance(currentUser, attendance))
+            {
+                return Forbid();
+            }
+
+            // Reject future attendance dates.
+            if (model.AttendanceDate.Date > DateTime.Today)
+            {
+                ModelState.AddModelError(
+                    nameof(model.AttendanceDate),
+                    "Attendance date cannot be in the future.");
+            }
+
+            // Reject invalid status values.
+            if (!Enum.IsDefined(typeof(AttendanceStatus), model.Status))
+            {
+                ModelState.AddModelError(
+                    nameof(model.Status),
+                    "Please select a valid attendance status.");
+            }
+
+            // Prevent duplicate attendance for the same employee and date.
+            bool duplicateExists = await _context.Attendances.AnyAsync(a =>
+                a.EmployeeId == attendance.EmployeeId &&
+                a.AttendanceDate == model.AttendanceDate.Date &&
+                a.Id != attendance.Id);
+
+            if (duplicateExists)
+            {
+                ModelState.AddModelError(
+                    nameof(model.AttendanceDate),
+                    "Attendance already exists for this employee on that date.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // Update only the permitted fields.
+            // EmployeeId remains unchanged.
+            attendance.AttendanceDate = model.AttendanceDate.Date;
+            attendance.Status = model.Status;
+            attendance.Notes = model.Notes?.Trim();
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                // The unique database index protects against concurrent duplicates.
+                bool duplicateNowExists = await _context.Attendances.AnyAsync(a =>
+                    a.EmployeeId == attendance.EmployeeId &&
+                    a.AttendanceDate == model.AttendanceDate.Date &&
+                    a.Id != attendance.Id);
+
+                if (!duplicateNowExists)
+                {
+                    throw;
+                }
+
+                ModelState.AddModelError(
+                    nameof(model.AttendanceDate),
+                    "Attendance already exists for this employee on that date.");
+
+                return View(model);
+            }
+
+            TempData["SuccessMessage"] =
+                "Attendance updated successfully.";
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // Check whether the current user is allowed to edit this record.
+        private static bool CanEditAttendance(
+            User currentUser,
+            Attendance attendance)
+        {
+            // Admin can edit every attendance record.
+            if (currentUser.Role == Role.Admin)
+            {
+                return true;
+            }
+
+            // Managers can edit their own attendance.
+            if (currentUser.Role == Role.Manager &&
+                attendance.EmployeeId == currentUser.Id)
+            {
+                return true;
+            }
+
+            // Managers can also edit regular employees in their department.
+            if (currentUser.Role == Role.Manager &&
+                attendance.Employee != null &&
+                attendance.Employee.Role == Role.User &&
+                attendance.Employee.Department == currentUser.Department)
+            {
+                return true;
+            }
+
+            // Regular employees cannot edit attendance.
+            return false;
         }
 
         // GET: /Attendance/Create
