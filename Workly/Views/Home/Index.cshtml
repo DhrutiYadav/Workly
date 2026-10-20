@@ -1,8 +1,334 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model Workly.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">
+
+    <div class="mx-auto max-w-7xl">
+
+        <!-- Welcome Section -->
+        <div class="mb-8">
+            <div class="mt-3">
+                <span class="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700">
+                    <span class="h-2 w-2 rounded-full bg-indigo-500"></span>
+                    @(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "User")
+                </span>
+            </div>
+
+            <h1 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+                Welcome to Workly @User.Identity?.Name
+                <span aria-hidden="true">👋</span>
+            </h1>
+
+            <p class="mt-3 text-sm leading-6 text-slate-500 sm:text-base">
+                Here's an overview of your employee management system.
+            </p>
+        </div>
+
+        <!-- Summary Cards -->
+        @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+        {
+            <div class="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+
+                <!-- Total Employees -->
+                <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-500">
+                                Total Employees
+                            </p>
+
+                            <h2 class="mt-3 text-3xl font-bold text-slate-900">
+                                @Model.TotalEmployees
+                            </h2>
+                        </div>
+
+                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 class="h-6 w-6"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke="currentColor"
+                                 stroke-width="1.8">
+                                <path stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      d="M17 20h5v-2a4 4 0 00-5-3.87M9 20H4v-2a4 4 0 015-3.87m8-5a4 4 0 11-8 0 4 4 0 018 0zm5 0a3 3 0 11-6 0m-6 0a3 3 0 11-6 0" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <p class="mt-4 text-xs text-slate-400">
+                        Employee records
+                    </p>
+                </div>
+
+                <!-- Total Managers -->
+                <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-500">
+                                Total Managers
+                            </p>
+
+                            <h2 class="mt-3 text-3xl font-bold text-slate-900">
+                                @Model.TotalManagers
+                            </h2>
+                        </div>
+
+                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 class="h-6 w-6"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke="currentColor"
+                                 stroke-width="1.8">
+                                <path stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2m7-10a4 4 0 100-8 4 4 0 000 8zm11 10v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <p class="mt-4 text-xs text-slate-400">
+                        Manager records
+                    </p>
+                </div>
+
+                <!-- Departments -->
+                <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-500">
+                                Departments
+                            </p>
+
+                            <h2 class="mt-3 text-3xl font-bold text-slate-900">
+                                @Model.TotalDepartments
+                            </h2>
+                        </div>
+
+                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 class="h-6 w-6"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke="currentColor"
+                                 stroke-width="1.8">
+                                <path stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      d="M3 21h18M5 21V7l8-4v18m6 0V11l-6-4M9 9v.01M9 12v.01M9 15v.01M9 18v.01M14 9v.01M14 12v.01M14 15v.01M14 18v.01" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <p class="mt-4 text-xs text-slate-400">
+                        Department overview
+                    </p>
+                </div>
+
+                <!-- Recent Joiners -->
+                <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-500">
+                                Recent Joiners
+                            </p>
+
+                            <h2 class="mt-3 text-3xl font-bold text-slate-900">
+                                @Model.RecentJoiners
+                            </h2>
+                        </div>
+
+                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 class="h-6 w-6"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke="currentColor"
+                                 stroke-width="1.8">
+                                <path stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      d="M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <p class="mt-4 text-xs text-slate-400">
+                        Recently joined employees
+                    </p>
+                </div>
+
+            </div>
+        }
+        <!-- Main Dashboard Content -->
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+            <!-- Recently Joined Employees -->
+            <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:col-span-2">
+
+                <div class="border-b border-slate-100 px-6 py-5">
+                    <h2 class="text-lg font-bold text-slate-900">
+                        Recently Joined Employees
+                    </h2>
+
+                    <p class="mt-1 text-sm text-slate-500">
+                        The latest additions to your workforce.
+                    </p>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[600px] text-left text-sm">
+                        <thead class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
+                            <tr>
+                                <th class="px-6 py-4 font-semibold">Employee</th>
+                                <th class="px-6 py-4 font-semibold">Department</th>
+                                <th class="px-6 py-4 font-semibold">Role</th>
+                                <th class="px-6 py-4 font-semibold">Date Joined</th>
+                            </tr>
+                        </thead>
+
+                        <tbody class="divide-y divide-slate-100">
+                            @if (Model.RecentEmployees.Any())
+                            {
+                                @foreach (var employee in Model.RecentEmployees)
+                                {
+                                    <tr class="transition hover:bg-slate-50">
+                                        <td class="px-6 py-4">
+                                            <span class="font-semibold text-slate-800">
+                                                @employee.FullName
+                                            </span>
+                                        </td>
+
+                                        <td class="px-6 py-4 text-slate-600">
+                                            @employee.Department
+                                        </td>
+
+                                        <td class="px-6 py-4">
+                                            <span class="inline-flex rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
+                                                @employee.Role
+                                            </span>
+                                        </td>
+
+                                        <td class="whitespace-nowrap px-6 py-4 text-slate-600">
+                                            @employee.DateOfJoining.ToString("dd MMM yyyy")
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4" class="px-6 py-12 text-center">
+                                        <p class="font-medium text-slate-600">
+                                            No employee records found.
+                                        </p>
+
+                                        <p class="mt-1 text-sm text-slate-400">
+                                            Employee information will appear here when available.
+                                        </p>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+            </section>
+
+            <!-- Department Overview -->
+            <section class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+
+                <div class="border-b border-slate-100 px-6 py-5">
+                    <h2 class="text-lg font-bold text-slate-900">
+                        Department Overview
+                    </h2>
+
+                    <p class="mt-1 text-sm text-slate-500">
+                        Employee distribution by department.
+                    </p>
+                </div>
+
+                <div class="px-6 py-6">
+                    @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                    {
+                        @if (Model.Departments.Any())
+                        {
+                            var maxEmployees = Model.Departments.Max(d => d.EmployeeCount);
+
+                            <div class="space-y-6">
+                                @foreach (var department in Model.Departments)
+                                {
+                                    var percentage = maxEmployees > 0
+                                        ? (int)Math.Round(
+                                            department.EmployeeCount * 100.0 / maxEmployees)
+                                        : 0;
+
+                                    <div>
+                                        <div class="mb-2 flex items-center justify-between gap-3">
+                                            <span class="truncate text-sm font-semibold text-slate-700">
+                                                @department.DepartmentName
+                                            </span>
+
+                                            <span class="whitespace-nowrap text-sm font-bold text-slate-900">
+                                                @department.EmployeeCount
+                                                <span class="font-normal text-slate-400">
+                                                    @(department.EmployeeCount == 1
+                                                        ? "employee"
+                                                        : "employees")
+                                                </span>
+                                            </span>
+                                        </div>
+
+                                        <div class="h-2.5 overflow-hidden rounded-full bg-slate-100">
+                                            <div class="h-full rounded-full bg-indigo-500 transition-all duration-500"
+                                                 style="width: @percentage%">
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="mt-6 border-t border-slate-100 pt-4">
+                                <p class="text-sm text-slate-500">
+                                    Total departments:
+                                    <span class="font-semibold text-slate-800">
+                                        @Model.Departments.Count
+                                    </span>
+                                </p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="py-8 text-center">
+                                <p class="font-medium text-slate-600">
+                                    No department records found.
+                                </p>
+
+                                <p class="mt-2 text-sm text-slate-400">
+                                    Department statistics will appear when records are available.
+                                </p>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="py-8 text-center">
+                            <p class="font-medium text-slate-700">
+                                Welcome to your dashboard!
+                            </p>
+
+                            <p class="mt-2 text-sm text-slate-400">
+                                Department statistics are available to Admins and Managers.
+                            </p>
+                        </div>
+                    }
+                </div>
+
+            </section>
+
+        </div>
+
+    </div>
+
 </div>
