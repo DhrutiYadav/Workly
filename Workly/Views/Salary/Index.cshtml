@@ -1,0 +1,122 @@
+﻿@model IEnumerable<Workly.Models.EmployeeSalary>
+
+@{
+    ViewData["Title"] = "Salary Management";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Salary Management</h2>
+
+        <a asp-action="Generate" class="btn btn-success">
+            Generate Salary
+        </a>
+    </div>
+
+    <form asp-action="Index" method="get" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <label class="form-label">Month</label>
+            <select name="month" class="form-select">
+                @for (int i = 1; i <= 12; i++)
+                {
+                    <option value="@i"
+                            selected="@(ViewBag.SelectedMonth == i)">
+                        @(System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i))
+                    </option>
+                }
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">Year</label>
+            <input type="number"
+                   name="year"
+                   class="form-control"
+                   value="@ViewBag.SelectedYear"
+                   min="2000"
+                   max="2100" />
+        </div>
+
+        <div class="col-md-3 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">
+                Filter
+            </button>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Month</th>
+                    <th>Year</th>
+                    <th>Present Days</th>
+                    <th>Half Days</th>
+                    <th>Basic Salary</th>
+                    <th>Allowances</th>
+                    <th>Deductions</th>
+                    <th>Net Salary</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (Model.Any())
+                {
+                    @foreach (var salary in Model)
+                    {
+                        <tr>
+                            <td>@salary.User.FullName</td>
+                            <td>
+                                @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(salary.Month)
+                            </td>
+                            <td>@salary.Year</td>
+                            <td>@salary.PresentDays</td>
+                            <td>@salary.HalfDays</td>
+                            <td>@salary.BasicSalary.ToString("C")</td>
+                            <td>@salary.Allowances.ToString("C")</td>
+                            <td>@salary.Deductions.ToString("C")</td>
+                            <td>@salary.NetSalary.ToString("C")</td>
+                            <td>@salary.PaymentStatus</td>
+                            <td>
+                                <a asp-action="Details"
+                                   asp-route-id="@salary.Id"
+                                   class="btn btn-primary btn-sm">
+                                    View Details
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="11" class="text-center">
+                            No salary records found for this month.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"
+                aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"
+                aria-label="Close"></button>
+    </div>
+}

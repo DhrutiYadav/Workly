@@ -1,0 +1,58 @@
+﻿@model Workly.Models.EmployeeSalary
+
+@{
+    ViewData["Title"] = "Generate Salary";
+}
+
+<div class="container mt-4">
+    <h2>Generate Salary</h2>
+
+    <form asp-action="Generate" method="post">
+
+        <div class="mb-3">
+            <label class="form-label">Employee</label>
+            <select name="userId" class="form-select" required>
+                <option value="">Select Employee</option>
+                @foreach (var employee in ViewBag.Employees)
+                {
+                    <option value="@employee.Id">
+                        @employee.FullName
+                    </option>
+                }
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Month</label>
+            <select name="month" class="form-select" required>
+                @for (int i = 1; i <= 12; i++)
+                {
+                    <option value="@i"
+                            selected="@(i == DateTime.Today.Month)">
+                        @(System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i))
+                    </option>
+                }
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Year</label>
+            <input type="number"
+                   name="year"
+                   class="form-control"
+                   value="@DateTime.Today.Year"
+                   min="2000"
+                   max="2100"
+                   required />
+        </div>
+
+        <button type="submit" class="btn btn-success">
+            Generate Salary
+        </button>
+
+        <a asp-action="Index" class="btn btn-secondary">
+            Cancel
+        </a>
+
+    </form>
+</div>

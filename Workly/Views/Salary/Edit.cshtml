@@ -1,0 +1,150 @@
+﻿@model Workly.Models.EmployeeSalary
+
+@{
+    ViewData["Title"] = "Edit Salary";
+
+    string monthName =
+        System.Globalization.CultureInfo.CurrentCulture
+            .DateTimeFormat.GetMonthName(Model.Month);
+}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Edit Salary</h2>
+
+        <a asp-action="Details"
+           asp-route-id="@Model.Id"
+           class="btn btn-secondary">
+            Back to Details
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+
+        <div class="card-header">
+            <h5 class="mb-0">Employee Information</h5>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+                    <strong>Employee Name</strong>
+                    <p>@Model.User.FullName</p>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <strong>Salary Period</strong>
+                    <p>@monthName @Model.Year</p>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <strong>Payment Status</strong>
+                    <p>@Model.PaymentStatus</p>
+                </div>
+
+            </div>
+
+            <hr />
+
+            <form asp-action="Edit"
+                  asp-route-id="@Model.Id"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+                <div class="mb-3">
+                    <label class="form-label" for="basicSalary">
+                        Basic Salary
+                    </label>
+
+                    <input type="number"
+                           id="basicSalary"
+                           name="basicSalary"
+                           class="form-control"
+                           value="@Model.BasicSalary"
+                           min="0"
+                           max="10000000"
+                           step="0.01"
+                           required />
+
+                    <small class="text-muted">
+                        Enter the employee's basic salary for this month.
+                    </small>
+                </div>
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-3">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        Allowances
+                    </label>
+
+                    <input type="number"
+                           name="allowances"
+                           class="form-control"
+                           value="@Model.Allowances"
+                           min="0"
+                           max="10000000"
+                           step="0.01"
+                           required />
+
+                    <small class="text-muted">
+                        Enter any additional amount added to the basic salary.
+                    </small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        Deductions
+                    </label>
+
+                    <input type="number"
+                           name="deductions"
+                           class="form-control"
+                           value="@Model.Deductions"
+                           min="0"
+                           max="10000000"
+                           step="0.01"
+                           required />
+
+                    <small class="text-muted">
+                        Enter the amount deducted from the salary.
+                    </small>
+                </div>
+
+                <div class="alert alert-info">
+                    <strong>Current Net Salary:</strong>
+                    @Model.NetSalary.ToString("C")
+
+                    <br />
+
+                    <small>
+                        Net Salary = Basic Salary + Allowances - Deductions.
+                        The updated amount will be calculated when you save.
+                    </small>
+                </div>
+
+                <div class="d-flex gap-2">
+
+                    <button type="submit"
+                            class="btn btn-success">
+                        Save Changes
+                    </button>
+
+                    <a asp-action="Details"
+                       asp-route-id="@Model.Id"
+                       class="btn btn-outline-secondary">
+                        Cancel
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>

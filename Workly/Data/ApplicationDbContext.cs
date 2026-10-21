@@ -15,6 +15,8 @@ namespace Workly.Data
 
         public DbSet<Attendance> Attendances { get; set; }
 
+        public DbSet<EmployeeSalary> EmployeeSalaries { get; set; }
+
         protected override void OnModelCreating(
             ModelBuilder modelBuilder)
         {
@@ -56,6 +58,16 @@ namespace Workly.Data
                     a.EmployeeId,
                     a.AttendanceDate
                 })
+                .IsUnique();
+
+            modelBuilder.Entity<EmployeeSalary>()
+                .HasOne(s => s.User)
+                .WithMany()
+                .HasForeignKey(s => s.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<EmployeeSalary>()
+                .HasIndex(s => new { s.UserId, s.Month, s.Year })
                 .IsUnique();
         }
     }

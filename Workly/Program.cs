@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Workly.Data;
+using Workly.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +35,8 @@ builder.Services
         options.SlidingExpiration = true;
     });
 builder.Services.AddAuthorization();
+
+builder.Services.AddScoped<SalaryService>();
 
 var app = builder.Build();
 

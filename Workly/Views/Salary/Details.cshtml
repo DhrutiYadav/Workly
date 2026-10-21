@@ -1,0 +1,166 @@
+﻿@model Workly.Models.EmployeeSalary
+
+@{
+    ViewData["Title"] = "Salary Details";
+
+    string monthName =
+        System.Globalization.CultureInfo.CurrentCulture
+            .DateTimeFormat.GetMonthName(Model.Month);
+}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Salary Details</h2>
+
+        <div class="d-flex gap-2">
+
+            @if (Model.PaymentStatus != "Paid")
+            {
+                <a asp-action="Edit"
+                   asp-route-id="@Model.Id"
+                   class="btn btn-primary">
+                    Edit Salary
+                </a>
+            }
+
+            <a asp-action="Index"
+               asp-route-month="@Model.Month"
+               asp-route-year="@Model.Year"
+               class="btn btn-secondary">
+                Back to Salary List
+            </a>
+
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Employee Information</h5>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <strong>Employee Name</strong>
+                    <p>@Model.User.FullName</p>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <strong>Salary Period</strong>
+                    <p>@monthName @Model.Year</p>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <strong>Salary Type</strong>
+                    <p>@Model.User.SalaryType</p>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <strong>Employee Salary Rate</strong>
+                    <p>@Model.User.Salary.ToString("C")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Attendance Summary</h5>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <strong>Present Days</strong>
+                    <p>@Model.PresentDays</p>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <strong>Half Days</strong>
+                    <p>@Model.HalfDays</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Salary Breakdown</h5>
+        </div>
+
+        <div class="card-body">
+            <table class="table table-bordered">
+                <tbody>
+                    <tr>
+                        <th>Basic Salary</th>
+                        <td>@Model.BasicSalary.ToString("C")</td>
+                    </tr>
+
+                    <tr>
+                        <th>Allowances</th>
+                        <td>@Model.Allowances.ToString("C")</td>
+                    </tr>
+
+                    <tr>
+                        <th>Deductions</th>
+                        <td>@Model.Deductions.ToString("C")</td>
+                    </tr>
+
+                    <tr class="table-success">
+                        <th>Net Salary</th>
+                        <th>@Model.NetSalary.ToString("C")</th>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0">Payment Information</h5>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <strong>Payment Status</strong>
+                    <p>
+                        @if (Model.PaymentStatus == "Paid")
+                        {
+                            <span class="badge bg-success">Paid</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning text-dark">
+                                @Model.PaymentStatus
+                            </span>
+                        }
+                    </p>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <strong>Payment Date</strong>
+                    <p>
+                        @(Model.PaymentDate?.ToString("dd MMM yyyy") ?? "Not paid yet")
+                    </p>
+                    @if (Model.PaymentStatus == "Pending")
+                    {
+                        <form asp-action="MarkAsPaid"
+                              asp-route-id="@Model.Id"
+                              method="post"
+                              onsubmit="return confirm('Are you sure you want to mark this salary as paid?');">
+
+                            @Html.AntiForgeryToken()
+
+                            <button type="submit" class="btn btn-success">
+                                Mark as Paid
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
