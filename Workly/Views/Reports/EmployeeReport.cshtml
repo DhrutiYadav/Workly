@@ -1,0 +1,733 @@
+﻿@model IEnumerable<Workly.Models.User>
+
+@{
+    ViewData["Title"] = "Employee Report";
+}
+
+<div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+
+    <!-- Page Header -->
+    <div class="mb-8 flex flex-col gap-4 sm:flex-row
+        sm:items-center sm:justify-between">
+
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight text-gray-900">
+                Employee Report
+            </h1>
+
+            <p class="mt-2 text-sm text-gray-600">
+                View employee details, roles, departments, and salaries.
+            </p>
+        </div>
+
+        <a asp-controller="Reports"
+           asp-action="Index"
+           class="inline-flex items-center justify-center rounded-lg
+            border border-gray-300 bg-white px-4 py-2.5
+            text-sm font-semibold text-gray-700 no-underline
+            transition hover:bg-gray-50">
+
+            Back to Reports
+
+        </a>
+
+    </div>
+
+    <!-- Employee Summary -->
+    <div class="mb-6 rounded-xl border border-gray-200
+        bg-white p-6 shadow-sm">
+
+        <p class="text-sm font-medium text-gray-500">
+            Employees Found
+        </p>
+
+        <h2 id="totalEmployees"
+            class="mt-2 text-3xl font-bold text-gray-900">
+            @ViewBag.TotalEmployees
+        </h2>
+
+        <p class="mt-2 text-sm text-gray-500">
+            Employees matching your search and access permissions.
+        </p>
+
+    </div>
+
+    <!-- Employee Charts -->
+    <div class="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+
+        <!-- Department Chart -->
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h2 class="text-lg font-semibold text-gray-900">
+                Employees by Department
+            </h2>
+
+            <p class="mt-1 text-sm text-gray-500">
+                Compare employee counts across departments.
+            </p>
+
+            <div class="mt-6" style="height: 300px;">
+                <canvas id="departmentChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Role Chart -->
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h2 class="text-lg font-semibold text-gray-900">
+                Employees by Role
+            </h2>
+
+            <p class="mt-1 text-sm text-gray-500">
+                View the distribution of employee roles.
+            </p>
+
+            <div class="mt-6" style="height: 300px;">
+                <canvas id="roleChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Search Form -->
+    <div class="mb-6 rounded-xl border border-gray-200
+        bg-white p-5 shadow-sm">
+
+        <form id="employeeSearchForm"
+              asp-controller="Reports"
+              asp-action="EmployeeReport"
+              method="get"
+              class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+
+            <!-- Search -->
+            <div>
+                <label for="search"
+                       class="mb-2 block text-sm font-medium text-gray-700">
+                    Search Employees
+                </label>
+
+                <input type="text"
+                       id="search"
+                       name="search"
+                       value="@ViewBag.Search"
+                       placeholder="Name, email, role..."
+                       class="block w-full rounded-lg border border-gray-300
+                px-4 py-2.5 text-sm text-gray-900 outline-none
+                transition placeholder:text-gray-400
+                focus:border-blue-500 focus:ring-2
+                focus:ring-blue-100" />
+            </div>
+
+            <!-- Department Filter -->
+            <div>
+                <label for="departmentFilter"
+                       class="mb-2 block text-sm font-medium text-gray-700">
+                    Department
+                </label>
+
+                <select id="departmentFilter"
+                        name="department"
+                        class="block w-full rounded-lg border border-gray-300
+                    bg-white px-4 py-2.5 text-sm text-gray-900
+                    outline-none focus:border-blue-500
+                    focus:ring-2 focus:ring-blue-100">
+
+                    <option value="">All Departments</option>
+                    <option value="IT">IT</option>
+                    <option value="QA">QA</option>
+                    <option value="HR">HR</option>
+                    <option value="Designing">Designing</option>
+
+                </select>
+            </div>
+
+            <!-- Role Filter -->
+            <div>
+                <label for="roleFilter"
+                       class="mb-2 block text-sm font-medium text-gray-700">
+                    Role
+                </label>
+
+                <select id="roleFilter"
+                        name="role"
+                        class="block w-full rounded-lg border border-gray-300
+                    bg-white px-4 py-2.5 text-sm text-gray-900
+                    outline-none focus:border-blue-500
+                    focus:ring-2 focus:ring-blue-100">
+
+                    <option value="">All Roles</option>
+                    <option value="Manager">Manager</option>
+                    <option value="User">User</option>
+
+                </select>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex items-end gap-2">
+
+                <button type="submit"
+                        class="rounded-lg bg-blue-600 px-5 py-2.5
+                    text-sm font-semibold text-white
+                    transition hover:bg-blue-700">
+                    Search
+                </button>
+
+                <button type="button"
+                        id="clearFilters"
+                        class="rounded-lg border border-gray-300
+                    bg-white px-5 py-2.5 text-sm
+                    font-semibold text-gray-700
+                    transition hover:bg-gray-50">
+                    Clear
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+    <!-- Employee Table -->
+    <div class="overflow-hidden rounded-xl border
+        border-gray-200 bg-white shadow-sm">
+
+        <div class="border-b border-gray-200 px-6 py-4">
+
+            <h2 class="text-lg font-semibold text-gray-900">
+                Employee Details
+            </h2>
+
+            <p class="mt-1 text-sm text-gray-500">
+                Complete employee information from Workly.
+            </p>
+
+        </div>
+
+        <div class="overflow-x-auto">
+
+            <table class="min-w-full divide-y divide-gray-200">
+
+                <thead class="bg-gray-50">
+
+                    <tr>
+
+                        <th class="whitespace-nowrap px-6 py-4
+                            text-left text-xs font-semibold
+                            uppercase tracking-wider
+                            text-gray-500">
+                            Employee Name
+                        </th>
+
+                        <th class="whitespace-nowrap px-6 py-4
+                            text-left text-xs font-semibold
+                            uppercase tracking-wider
+                            text-gray-500">
+                            Email
+                        </th>
+
+                        <th class="whitespace-nowrap px-6 py-4
+                            text-left text-xs font-semibold
+                            uppercase tracking-wider
+                            text-gray-500">
+                            Department
+                        </th>
+
+                        <th class="whitespace-nowrap px-6 py-4
+                            text-left text-xs font-semibold
+                            uppercase tracking-wider
+                            text-gray-500">
+                            Role
+                        </th>
+
+                        <th class="whitespace-nowrap px-6 py-4
+                            text-left text-xs font-semibold
+                            uppercase tracking-wider
+                            text-gray-500">
+                            Salary
+                        </th>
+
+                        <th class="whitespace-nowrap px-6 py-4
+                            text-left text-xs font-semibold
+                            uppercase tracking-wider
+                            text-gray-500">
+                            Salary Type
+                        </th>
+
+                        <th class="whitespace-nowrap px-6 py-4
+                            text-left text-xs font-semibold
+                            uppercase tracking-wider
+                            text-gray-500">
+                            Date of Joining
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody class="divide-y divide-gray-100 bg-white" id="employeeTableBody">
+
+                    @if (Model.Any())
+                    {
+                        @foreach (var employee in Model)
+                        {
+                            <tr class="transition hover:bg-gray-50">
+
+                                <td class="whitespace-nowrap px-6 py-4
+                                    text-sm font-semibold
+                                    text-gray-900">
+                                    @employee.FullName
+                                </td>
+
+                                <td class="whitespace-nowrap px-6 py-4
+                                    text-sm text-gray-600">
+                                    @employee.Email
+                                </td>
+
+                                <td class="whitespace-nowrap px-6 py-4
+                                    text-sm text-gray-600">
+                                    @employee.Department
+                                </td>
+
+                                <td class="whitespace-nowrap px-6 py-4">
+
+                                    <span class="inline-flex rounded-full
+                                        bg-blue-50 px-3 py-1
+                                        text-xs font-semibold
+                                        text-blue-700">
+                                        @employee.Role
+                                    </span>
+
+                                </td>
+
+                                <td class="whitespace-nowrap px-6 py-4
+                                    text-sm font-medium
+                                    text-gray-900">
+
+                                    @employee.Salary.ToString(
+                                        "C",
+                                        System.Globalization
+                                            .CultureInfo
+                                            .GetCultureInfo("en-IN"))
+
+                                </td>
+
+                                <td class="whitespace-nowrap px-6 py-4
+                                    text-sm text-gray-600">
+
+                                    @if (employee.SalaryType ==
+                                         Workly.Models.SalaryType.MonthlySalary)
+                                    {
+                                        <span>Monthly Salary</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Daily Wage</span>
+                                    }
+
+                                </td>
+
+                                <td class="whitespace-nowrap px-6 py-4
+                                    text-sm text-gray-600">
+
+                                    @employee.DateOfJoining.ToString("dd MMM yyyy")
+
+                                </td>
+
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+
+                            <td colspan="7"
+                                class="px-6 py-12 text-center">
+
+                                <h3 class="text-base font-semibold
+                                    text-gray-900">
+
+                                    No employees found
+
+                                </h3>
+
+                                <p class="mt-2 text-sm text-gray-500">
+
+                                    Try another search term or clear
+                                    the current search.
+
+                                </p>
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- Table Footer -->
+        <div class="border-t border-gray-200 bg-gray-50
+            px-6 py-4">
+
+            <p class="text-sm text-gray-600">
+
+                Total employees displayed: <span id="footerTotalEmployees" class="font-semibold text-gray-900">@ViewBag.TotalEmployees</span>
+
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        (() => {
+            const dataUrl = '@Url.Action("EmployeeReportData", "Reports")';
+
+            const searchForm = document.getElementById('employeeSearchForm');
+            const searchInput = document.getElementById('search');
+
+            const departmentFilter = document.getElementById('departmentFilter');
+            const roleFilter = document.getElementById('roleFilter');
+            const clearButton = document.getElementById('clearFilters');
+
+            const totalEmployeesElement = document.getElementById('totalEmployees');
+            const tableBody = document.getElementById('employeeTableBody');
+
+            let departmentChart = null;
+            let roleChart = null;
+            let debounceTimer = null;
+            let requestController = null;
+
+            const currencyFormatter = new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
+                maximumFractionDigits: 2
+            });
+
+            function createCell(value, className = '') {
+                const cell = document.createElement('td');
+
+                cell.className = className;
+                cell.textContent = value ?? '';
+
+                return cell;
+            }
+
+            function formatDate(value) {
+                if (!value) {
+                    return '';
+                }
+
+                const date = new Date(value);
+
+                if (Number.isNaN(date.getTime())) {
+                    return '';
+                }
+
+                return date.toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    timeZone: 'UTC'
+                });
+            }
+
+            function renderEmployees(employees) {
+                tableBody.replaceChildren();
+
+                if (!employees.length) {
+                    const row = document.createElement('tr');
+                    const cell = document.createElement('td');
+
+                    cell.colSpan = 7;
+                    cell.className = 'px-6 py-12 text-center text-sm text-gray-500';
+                    cell.textContent = 'No employees found. Try another search term.';
+
+                    row.appendChild(cell);
+                    tableBody.appendChild(row);
+
+                    return;
+                }
+
+                employees.forEach(employee => {
+                    const row = document.createElement('tr');
+
+                    row.className = 'transition hover:bg-gray-50';
+
+                    row.appendChild(
+                        createCell(
+                            employee.fullName,
+                            'whitespace-nowrap px-6 py-4 text-sm font-semibold text-gray-900'
+                        )
+                    );
+
+                    row.appendChild(
+                        createCell(
+                            employee.email,
+                            'whitespace-nowrap px-6 py-4 text-sm text-gray-600'
+                        )
+                    );
+
+                    row.appendChild(
+                        createCell(
+                            employee.department,
+                            'whitespace-nowrap px-6 py-4 text-sm text-gray-600'
+                        )
+                    );
+
+                    const roleCell = document.createElement('td');
+                    roleCell.className = 'whitespace-nowrap px-6 py-4';
+
+                    const roleBadge = document.createElement('span');
+                    roleBadge.className =
+                        'inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700';
+
+                    roleBadge.textContent = employee.role ?? '';
+
+                    roleCell.appendChild(roleBadge);
+                    row.appendChild(roleCell);
+
+                    row.appendChild(
+                        createCell(
+                            currencyFormatter.format(employee.salary),
+                            'whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900'
+                        )
+                    );
+
+                    row.appendChild(
+                        createCell(
+                            employee.salaryType === 'MonthlySalary'
+                                ? 'Monthly Salary'
+                                : 'Daily Wage',
+                            'whitespace-nowrap px-6 py-4 text-sm text-gray-600'
+                        )
+                    );
+
+                    row.appendChild(
+                        createCell(
+                            formatDate(employee.dateOfJoining),
+                            'whitespace-nowrap px-6 py-4 text-sm text-gray-600'
+                        )
+                    );
+
+                    tableBody.appendChild(row);
+                });
+            }
+
+            function renderDepartmentChart(data) {
+                const labels = data.map(item => item.department);
+                const values = data.map(item => item.count);
+
+                if (!departmentChart) {
+                    departmentChart = new Chart(
+                        document.getElementById('departmentChart'),
+                        {
+                            type: 'bar',
+                            data: {
+                                labels,
+                                datasets: [{
+                                    label: 'Employees',
+                                    data: values,
+                                    backgroundColor: 'rgba(59, 130, 246, 0.75)',
+                                    borderColor: 'rgb(37, 99, 235)',
+                                    borderWidth: 1,
+                                    borderRadius: 6
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: {
+                                            precision: 0
+                                        }
+                                    }
+                                },
+                                plugins: {
+                                    legend: {
+                                        display: false
+                                    }
+                                }
+                            }
+                        }
+                    );
+
+                    return;
+                }
+
+                departmentChart.data.labels = labels;
+                departmentChart.data.datasets[0].data = values;
+                departmentChart.update();
+            }
+
+            function renderRoleChart(data) {
+                const labels = data.map(item => item.role);
+                const values = data.map(item => item.count);
+
+                if (!roleChart) {
+                    roleChart = new Chart(
+                        document.getElementById('roleChart'),
+                        {
+                            type: 'doughnut',
+                            data: {
+                                labels,
+                                datasets: [{
+                                    label: 'Employees',
+                                    data: values,
+                                    backgroundColor: [
+                                        'rgb(59, 130, 246)',
+                                        'rgb(16, 185, 129)',
+                                        'rgb(245, 158, 11)',
+                                        'rgb(139, 92, 246)',
+                                        'rgb(236, 72, 153)'
+                                    ],
+                                    borderWidth: 2,
+                                    borderColor: '#ffffff'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        position: 'bottom'
+                                    }
+                                }
+                            }
+                        }
+                    );
+
+                    return;
+                }
+
+                roleChart.data.labels = labels;
+                roleChart.data.datasets[0].data = values;
+                roleChart.update();
+            }
+
+            async function loadReport() {
+                // Cancel an earlier request if the user searches again.
+                if (requestController) {
+                    requestController.abort();
+                }
+
+                requestController = new AbortController();
+
+                        const params = new URLSearchParams();
+
+                        const search = searchInput.value.trim();
+                        const department = departmentFilter.value;
+                        const role = roleFilter.value;
+
+                        if (search) {
+                            params.set('search', search);
+                        }
+
+                        if (department) {
+                            params.set('department', department);
+                        }
+
+                        if (role) {
+                            params.set('role', role);
+                        }
+
+                try {
+                    const separator = dataUrl.includes('?') ? '&' : '?';
+
+                    const response = await fetch(
+                        `${dataUrl}${separator}${params.toString()}`,
+                        {
+                            method: 'GET',
+                            headers: {
+                                'Accept': 'application/json'
+                            },
+                            credentials: 'same-origin',
+                            signal: requestController.signal
+                        }
+                    );
+
+                    if (!response.ok) {
+                        throw new Error(
+                            `Unable to load the report. HTTP ${response.status}`
+                        );
+                    }
+
+                    const result = await response.json();
+
+                    document.getElementById('footerTotalEmployees').textContent = result.employees.length;
+
+                    totalEmployeesElement.textContent =
+                        result.totalEmployees;
+
+                    renderEmployees(result.employees);
+                    renderDepartmentChart(result.departmentData);
+                    renderRoleChart(result.roleData);
+
+                } catch (error) {
+                    if (error.name === 'AbortError') {
+                        return;
+                    }
+
+                    console.error('Employee report error:', error);
+
+                    alert(
+                        'Unable to update the Employee Report. Please try again.'
+                    );
+                }
+            }
+
+            // Search without reloading the entire page.
+            searchForm.addEventListener('submit', event => {
+                event.preventDefault();
+
+                clearTimeout(debounceTimer);
+                loadReport();
+            });
+
+            // Update results after the user pauses typing.
+            searchInput.addEventListener('input', () => {
+                clearTimeout(debounceTimer);
+
+                debounceTimer = setTimeout(() => {
+                    loadReport();
+                }, 350);
+            });
+
+                    // Update report when the department changes.
+            departmentFilter.addEventListener('change', () => {
+                clearTimeout(debounceTimer);
+                loadReport();
+            });
+
+            // Update report when the role changes.
+            roleFilter.addEventListener('change', () => {
+                clearTimeout(debounceTimer);
+                loadReport();
+            });
+
+            // Clear search and all filters without reloading the page.
+            if (clearButton) {
+                clearButton.addEventListener('click', () => {
+                    clearTimeout(debounceTimer);
+
+                    searchInput.value = '';
+                    departmentFilter.value = '';
+                    roleFilter.value = '';
+
+                    loadReport();
+                });
+            }
+
+            // Load fresh data when the report first opens.
+            loadReport();
+        })();
+    </script>
+}

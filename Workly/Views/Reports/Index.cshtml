@@ -1,0 +1,162 @@
+﻿@{
+    ViewData["Title"] = "Reports";
+}
+
+<div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+
+    <!-- Page Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold tracking-tight text-gray-900">
+            Reports
+        </h1>
+
+        <p class="mt-2 text-sm text-gray-600">
+            View employee, department, salary, and attendance summaries.
+        </p>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
+        <!-- Total Employees -->
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <p class="text-sm font-medium text-gray-500">
+                Total Employees
+            </p>
+
+            <h2 class="mt-3 text-3xl font-bold text-gray-900">
+                @ViewBag.TotalEmployees
+            </h2>
+
+            <p class="mt-2 text-sm text-gray-500">
+                Employees in your accessible records
+            </p>
+        </div>
+
+        <!-- Total Departments -->
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <p class="text-sm font-medium text-gray-500">
+                Total Departments
+            </p>
+
+            <h2 class="mt-3 text-3xl font-bold text-gray-900">
+                @ViewBag.TotalDepartments
+            </h2>
+
+            <p class="mt-2 text-sm text-gray-500">
+                Departments represented by employees
+            </p>
+        </div>
+
+        <!-- Monthly Salary -->
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <p class="text-sm font-medium text-gray-500">
+                Monthly Salary Total
+            </p>
+
+            <h2 class="mt-3 text-3xl font-bold text-gray-900">
+                @(((decimal)ViewBag.TotalMonthlySalary).ToString("C",
+                    System.Globalization.CultureInfo.GetCultureInfo("en-IN")))
+            </h2>
+
+            <p class="mt-2 text-sm text-gray-500">
+                Sum of configured monthly salaries
+            </p>
+        </div>
+
+        <!-- Daily Wage Employees -->
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <p class="text-sm font-medium text-gray-500">
+                Daily Wage Employees
+            </p>
+
+            <h2 class="mt-3 text-3xl font-bold text-gray-900">
+                @ViewBag.TotalDailyWageEmployees
+            </h2>
+
+            <p class="mt-2 text-sm text-gray-500">
+                Employees using the daily wage salary type
+            </p>
+        </div>
+
+        <!-- Attendance Records -->
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <p class="text-sm font-medium text-gray-500">
+                Attendance Records
+            </p>
+
+            <h2 class="mt-3 text-3xl font-bold text-gray-900">
+                @ViewBag.TotalAttendanceRecords
+            </h2>
+
+            <p class="mt-2 text-sm text-gray-500">
+                Records for the current month
+            </p>
+        </div>
+
+    </div>
+
+    <!-- Reports Information -->
+    <div class="mt-10 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+
+        <h2 class="text-xl font-semibold text-gray-900">
+            Available Reports
+        </h2>
+
+        <p class="mt-2 text-sm text-gray-600">
+            Detailed reports will be added in the next development steps.
+        </p>
+
+        <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+            <a asp-controller="Reports"
+               asp-action="EmployeeReport"
+               class="block rounded-xl bg-gray-50 p-4 no-underline
+                      transition hover:bg-gray-100">
+
+                <h3 class="font-semibold text-gray-800">
+                    Employee Report
+                </h3>
+
+                <p class="mt-1 text-sm text-gray-600">
+                    View employee details, roles, departments, and salaries.
+                </p>
+
+                <span class="mt-3 inline-block text-sm font-semibold text-blue-600">
+                    View Report →
+                </span>
+
+            </a>
+
+            <div class="rounded-xl bg-gray-50 p-4">
+                <h3 class="font-semibold text-gray-800">
+                    Attendance Report
+                </h3>
+                <p class="mt-1 text-sm text-gray-600">
+                    Review attendance records and attendance statuses.
+                </p>
+            </div>
+
+            <div class="rounded-xl bg-gray-50 p-4">
+                <h3 class="font-semibold text-gray-800">
+                    Salary Report
+                </h3>
+                <p class="mt-1 text-sm text-gray-600">
+                    Review employee salaries and payroll records.
+                </p>
+            </div>
+
+            <div class="rounded-xl bg-gray-50 p-4">
+                <h3 class="font-semibold text-gray-800">
+                    Joining Report
+                </h3>
+                <p class="mt-1 text-sm text-gray-600">
+                    Review employee joining dates within a selected period.
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
