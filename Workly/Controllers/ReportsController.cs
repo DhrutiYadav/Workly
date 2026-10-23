@@ -469,5 +469,110 @@ namespace Workly.Controllers
 
             return View(salaries);
         }
+
+        public async Task<IActionResult> JoiningReport(
+            DateTime? startDate,
+            DateTime? endDate,
+            string? department,
+            string? role)
+        {
+            // Start with non-admin employees.
+            var usersQuery = _context.Users
+                .AsNoTracking()
+                .Where(u => u.Role != Role.Admin);
+
+            // Restrict Managers to regular employees in their own department.
+            if (User.IsInRole("Manager"))
+            {
+                var currentUserId = User.FindFirstValue(
+                    ClaimTypes.NameIdentifier);
+
+                if (!int.TryParse(currentUserId, out int managerId))
+                {
+                    return Forbid();
+                }
+
+                var manager = await _context.Users
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Id == managerId);
+
+                if (manager == null)
+                {
+                    return Forbid();
+                }
+
+                usersQuery = usersQuery.Where(u =>
+                    u.Department == manager.Department &&
+                    u.Role == Role.User);
+            }
+
+            // Filter by joining date range.
+            if (startDate.HasValue)
+            {
+                usersQuery = usersQuery.Where(u =>
+                    u.DateOfJoining >= startDate.Value.Date);
+            }
+
+            if (endDate.HasValue)
+            {
+                var exclusiveEndDate = endDate.Value.Date.AddDays(1);
+
+                usersQuery = usersQuery.Where(u =>
+                    u.DateOfJoining < exclusiveEndDate);
+            }
+
+            // Filter by department.
+            if (!string.IsNullOrWhiteSpace(department))
+            {
+                department = department.Trim();
+
+                usersQuery = usersQuery.Where(u =>
+                    u.Department == department);
+            }
+
+            // Filter by role. Admin accounts are never included.
+            if (!string.IsNullOrWhiteSpace(role) &&
+                Enum.TryParse<Role>(role, true, out var selectedRole) &&
+                Enum.IsDefined(typeof(Role), selectedRole) &&
+                selectedRole != Role.Admin)
+            {
+                usersQuery = usersQuery.Where(u =>
+                    u.Role == selectedRole);
+            }
+
+            // Retrieve employees, newest joining date first.
+            var employees = await usersQuery
+                .OrderByDescending(u => u.DateOfJoining)
+                .ThenBy(u => u.FullName)
+                .ToListAsync();
+
+            // Populate department dropdown using accessible employees.
+            var departments = await (
+                User.IsInRole("Manager")
+                    ? usersQuery.Select(u => u.Department)
+                    : _context.Users
+                        .AsNoTracking()
+                        .Where(u => u.Role != Role.Admin)
+                        .Select(u => u.Department)
+                )
+                .Where(d => !string.IsNullOrWhiteSpace(d))
+                .Distinct()
+                .OrderBy(d => d)
+                .ToListAsync();
+
+            ViewBag.Departments = departments;
+
+            // Preserve selected filters.
+            ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
+            ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
+            ViewBag.SelectedDepartment = department;
+            ViewBag.SelectedRole = role;
+
+            // Summary.
+            ViewBag.TotalEmployees = employees.Count;
+
+            return View(employees);
+        }
+
     }
 }

@@ -192,6 +192,24 @@
         </div>
     </div>
 
+    <!-- Salary Comparison Chart -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Salary Overview</h5>
+        </div>
+
+        <div class="card-body">
+            <p class="text-muted">
+                Comparison of total basic salary, allowances, deductions, and net salary
+                for the selected records.
+            </p>
+
+            <div style="position: relative; height: 350px;">
+                <canvas id="salaryChart"></canvas>
+            </div>
+        </div>
+    </div>
+
     <!-- Salary Records Table -->
     <div class="card shadow-sm">
         <div class="card-header">
@@ -268,3 +286,84 @@
     </div>
 
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        const salaryLabels = [
+            'Basic Salary',
+            'Allowances',
+            'Deductions',
+            'Net Salary'
+        ];
+
+        const salaryValues = [
+            @(((decimal)ViewBag.TotalBasicSalary).ToString(
+                System.Globalization.CultureInfo.InvariantCulture)),
+            @(((decimal)ViewBag.TotalAllowances).ToString(
+                System.Globalization.CultureInfo.InvariantCulture)),
+            @(((decimal)ViewBag.TotalDeductions).ToString(
+                System.Globalization.CultureInfo.InvariantCulture)),
+            @(((decimal)ViewBag.TotalNetSalary).ToString(
+                System.Globalization.CultureInfo.InvariantCulture))
+        ];
+
+        const chartCanvas = document.getElementById('salaryChart');
+
+        if (chartCanvas) {
+            new Chart(chartCanvas, {
+                type: 'bar',
+                data: {
+                    labels: salaryLabels,
+                    datasets: [{
+                        label: 'Amount (₹)',
+                        data: salaryValues,
+                        backgroundColor: [
+                            '#3B82F6',
+                            '#10B981',
+                            '#F59E0B',
+                            '#8B5CF6'
+                        ],
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return '₹' +
+                                        context.parsed.y.toLocaleString(
+                                            'en-IN',
+                                            {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
+                                            }
+                                        );
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (value) {
+                                    return '₹' +
+                                        Number(value).toLocaleString('en-IN');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+}

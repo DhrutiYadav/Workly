@@ -187,6 +187,23 @@
 
     </div>
 
+    <!-- Attendance Status Chart -->
+    <div class="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+
+        <h2 class="mb-2 text-lg font-semibold text-gray-900">
+            Attendance Status Overview
+        </h2>
+
+        <p class="mb-5 text-sm text-gray-600">
+            Distribution of attendance statuses for the selected filters.
+        </p>
+
+        <div class="mx-auto" style="max-width: 420px;">
+            <canvas id="attendanceStatusChart"></canvas>
+        </div>
+
+    </div>
+
     <!-- Attendance Table -->
     <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
 
@@ -320,3 +337,56 @@
     </div>
 
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        const attendanceStatusData = {
+            present: @Model.Count(a => a.Status == Workly.Models.AttendanceStatus.Present),
+            absent: @Model.Count(a => a.Status == Workly.Models.AttendanceStatus.Absent),
+            halfDay: @Model.Count(a => a.Status == Workly.Models.AttendanceStatus.HalfDay),
+            leave: @Model.Count(a => a.Status == Workly.Models.AttendanceStatus.Leave)
+        };
+
+        const chartCanvas = document.getElementById('attendanceStatusChart');
+
+        if (chartCanvas) {
+            new Chart(chartCanvas, {
+                type: 'doughnut',
+
+                data: {
+                    labels: ['Present', 'Absent', 'Half Day', 'Leave'],
+
+                    datasets: [{
+                        data: [
+                            attendanceStatusData.present,
+                            attendanceStatusData.absent,
+                            attendanceStatusData.halfDay,
+                            attendanceStatusData.leave
+                        ],
+                        backgroundColor: [
+                            '#16a34a',
+                            '#dc2626',
+                            '#eab308',
+                            '#2563eb'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+}

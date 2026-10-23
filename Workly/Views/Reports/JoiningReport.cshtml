@@ -1,0 +1,347 @@
+﻿@model List<Workly.Models.User>
+
+@{
+    ViewData["Title"] = "Joining Report";
+
+    var departments = ViewBag.Departments as List<string>
+                      ?? new List<string>();
+
+    var selectedRole = ViewBag.SelectedRole as string ?? "";
+    var selectedDepartment = ViewBag.SelectedDepartment as string ?? "";
+}
+
+<div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+
+    <!-- Page Header -->
+    <div class="mb-8 flex flex-wrap items-center justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight text-gray-900">
+                Joining Report
+            </h1>
+
+            <p class="mt-2 text-sm text-gray-600">
+                Review employee joining dates and employment details.
+            </p>
+        </div>
+
+        <a asp-controller="Reports"
+           asp-action="Index"
+           class="rounded-lg bg-gray-600 px-4 py-2 text-sm font-semibold text-white no-underline hover:bg-gray-700">
+            Back to Reports
+        </a>
+    </div>
+
+    <!-- Summary Card -->
+    <div class="mb-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <p class="text-sm font-medium text-gray-500">
+            Total Employees
+        </p>
+
+        <h2 class="mt-3 text-3xl font-bold text-gray-900">
+            @ViewBag.TotalEmployees
+        </h2>
+
+        <p class="mt-2 text-sm text-gray-500">
+            Employees matching the selected filters
+        </p>
+    </div>
+
+    <!-- Filters -->
+    <div class="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+
+        <h2 class="mb-5 text-xl font-semibold text-gray-900">
+            Filter Joining Records
+        </h2>
+
+        <form asp-controller="Reports"
+              asp-action="JoiningReport"
+              method="get">
+
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+
+                <!-- Start Date -->
+                <div>
+                    <label for="startDate"
+                           class="mb-2 block text-sm font-medium text-gray-700">
+                        Start Date
+                    </label>
+
+                    <input type="date"
+                           id="startDate"
+                           name="startDate"
+                           value="@ViewBag.StartDate"
+                           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" />
+                </div>
+
+                <!-- End Date -->
+                <div>
+                    <label for="endDate"
+                           class="mb-2 block text-sm font-medium text-gray-700">
+                        End Date
+                    </label>
+
+                    <input type="date"
+                           id="endDate"
+                           name="endDate"
+                           value="@ViewBag.EndDate"
+                           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" />
+                </div>
+
+                <!-- Department -->
+                <div>
+                    <label for="department"
+                           class="mb-2 block text-sm font-medium text-gray-700">
+                        Department
+                    </label>
+
+                    <select id="department"
+                            name="department"
+                            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm">
+
+                        <option value="">All Departments</option>
+
+                        @foreach (var item in departments)
+                        {
+                            if (selectedDepartment == item)
+                            {
+                                <option value="@item" selected>@item</option>
+                            }
+                            else
+                            {
+                                <option value="@item">@item</option>
+                            }
+                        }
+
+                    </select>
+                </div>
+
+                <!-- Role -->
+                <div>
+                    <label for="role"
+                           class="mb-2 block text-sm font-medium text-gray-700">
+                        Role
+                    </label>
+
+                    <select id="role"
+                            name="role"
+                            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm">
+
+                        <option value="">All Roles</option>
+
+                        @foreach (var item in Enum.GetValues<Workly.Models.Role>())
+                        {
+                            if (item == Workly.Models.Role.Admin)
+                            {
+                                continue;
+                            }
+
+                            var roleValue = item.ToString();
+
+                            if (selectedRole == roleValue)
+                            {
+                                <option value="@roleValue" selected>@roleValue</option>
+                            }
+                            else
+                            {
+                                <option value="@roleValue">@roleValue</option>
+                            }
+                        }
+
+                    </select>
+                </div>
+
+            </div>
+
+            <!-- Filter Buttons -->
+            <div class="mt-6 flex flex-wrap gap-3">
+
+                <button type="submit"
+                        class="rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                    Apply Filters
+                </button>
+
+                <a asp-controller="Reports"
+                   asp-action="JoiningReport"
+                   class="rounded-lg border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 no-underline hover:bg-gray-50">
+                    Clear Filters
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+    <!-- Monthly Employee Joining Chart -->
+    <div class="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+
+        <h2 class="text-xl font-semibold text-gray-900">
+            Monthly Employee Joining Trend
+        </h2>
+
+        <p class="mt-2 text-sm text-gray-600">
+            Number of employees who joined each month based on the selected filters.
+        </p>
+
+        <div class="mt-6 h-80">
+            <canvas id="joiningChart"></canvas>
+        </div>
+
+    </div>
+
+    <!-- Employee Table -->
+    <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+
+        <div class="border-b border-gray-200 px-6 py-4">
+            <h2 class="text-xl font-semibold text-gray-900">
+                Employee Joining Records
+            </h2>
+        </div>
+
+        <div class="overflow-x-auto">
+
+            <table class="min-w-full divide-y divide-gray-200">
+
+                <thead class="bg-gray-900">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-white">
+                            Employee Name
+                        </th>
+
+                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-white">
+                            Department
+                        </th>
+
+                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-white">
+                            Role
+                        </th>
+
+                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-white">
+                            Date of Joining
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y divide-gray-200">
+
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var employee in Model)
+                        {
+                            <tr class="transition hover:bg-gray-50">
+
+                                <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+                                    @employee.FullName
+                                </td>
+
+                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-600">
+                                    @(string.IsNullOrWhiteSpace(employee.Department)
+                                        ? "Not Assigned"
+                                        : employee.Department)
+                                </td>
+
+                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-600">
+                                    @employee.Role
+                                </td>
+
+                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-600">
+                                    @employee.DateOfJoining.ToString("dd MMM yyyy")
+                                </td>
+
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4"
+                                class="px-6 py-10 text-center text-sm text-gray-500">
+                                No employee joining records found for the selected filters.
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+                    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const joiningLabels = @Html.Raw(
+        System.Text.Json.JsonSerializer.Serialize(
+            Model
+                .GroupBy(e => new { e.DateOfJoining.Year, e.DateOfJoining.Month })
+                .OrderBy(g => g.Key.Year)
+                .ThenBy(g => g.Key.Month)
+                .Select(g => new DateTime(g.Key.Year, g.Key.Month, 1)
+                    .ToString("MMM yyyy"))
+        )
+    );
+
+    const joiningCounts = @Html.Raw(
+        System.Text.Json.JsonSerializer.Serialize(
+            Model
+                .GroupBy(e => new { e.DateOfJoining.Year, e.DateOfJoining.Month })
+                .OrderBy(g => g.Key.Year)
+                .ThenBy(g => g.Key.Month)
+                .Select(g => g.Count())
+        )
+    );
+
+    const chartCanvas = document.getElementById('joiningChart');
+
+    new Chart(chartCanvas, {
+        type: 'line',
+        data: {
+            labels: joiningLabels,
+            datasets: [{
+                label: 'Employees Joined',
+                data: joiningCounts,
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37, 99, 235, 0.12)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.3,
+                pointRadius: 5,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    },
+                    title: {
+                        display: true,
+                        text: 'Number of Employees'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Joining Month'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true
+                },
+                tooltip: {
+                    enabled: true
+                }
+            }
+        }
+    });
+</script>
