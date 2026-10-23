@@ -128,23 +128,44 @@
 
             </a>
 
-            <div class="rounded-xl bg-gray-50 p-4">
+            <a asp-controller="Reports"
+               asp-action="AttendanceReport"
+               class="block rounded-xl bg-gray-50 p-4 no-underline transition hover:bg-gray-100">
+
                 <h3 class="font-semibold text-gray-800">
                     Attendance Report
                 </h3>
-                <p class="mt-1 text-sm text-gray-600">
-                    Review attendance records and attendance statuses.
-                </p>
-            </div>
 
-            <div class="rounded-xl bg-gray-50 p-4">
+                <p class="mt-1 text-sm text-gray-600">
+                    Review attendance records, employees, dates, and attendance statuses.
+                </p>
+
+                <span class="mt-3 inline-block text-sm font-semibold text-blue-600">
+                    View Report →
+                </span>
+
+            </a>
+
+            
+            <a asp-controller="Reports"
+               asp-action="SalaryReport"
+               class="block rounded-xl bg-gray-50 p-4 no-underline
+                      transition hover:bg-gray-100">
+
                 <h3 class="font-semibold text-gray-800">
                     Salary Report
                 </h3>
+
                 <p class="mt-1 text-sm text-gray-600">
-                    Review employee salaries and payroll records.
+                    Review employee salaries, payroll records, allowances, deductions, and payment status.
                 </p>
-            </div>
+
+                <span class="mt-3 inline-block text-sm font-semibold text-blue-600">
+                    View Report →
+                </span>
+
+            </a>
+
 
             <div class="rounded-xl bg-gray-50 p-4">
                 <h3 class="font-semibold text-gray-800">

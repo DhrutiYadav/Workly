@@ -92,6 +92,146 @@ namespace Workly.Controllers
             return View();
         }
 
+        public async Task<IActionResult> AttendanceReport(
+    int? employeeId,
+    DateTime? startDate,
+    DateTime? endDate,
+    string? status)
+        {
+            // Start with attendance records and employee details.
+            var query = _context.Attendances
+                .AsNoTracking()
+                .Include(a => a.Employee)
+                .AsQueryable();
+
+            // Restrict Managers to their own attendance and
+            // regular employees in their department.
+            if (User.IsInRole("Manager"))
+            {
+                var currentUserId = User.FindFirstValue(
+                    ClaimTypes.NameIdentifier);
+
+                if (!int.TryParse(currentUserId, out int managerId))
+                {
+                    return Forbid();
+                }
+
+                var manager = await _context.Users
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Id == managerId);
+
+                if (manager == null)
+                {
+                    return Forbid();
+                }
+
+                query = query.Where(a =>
+                    a.EmployeeId == manager.Id ||
+                    (
+                        a.Employee != null &&
+                        a.Employee.Role == Role.User &&
+                        a.Employee.Department == manager.Department
+                    ));
+            }
+            else
+            {
+                // Admins can view all attendance records.
+                query = query.Where(a =>
+                    a.Employee != null &&
+                    a.Employee.Role != Role.Admin);
+            }
+
+            // Apply employee filter.
+            if (employeeId.HasValue)
+            {
+                query = query.Where(a =>
+                    a.EmployeeId == employeeId.Value);
+            }
+
+            // Apply start-date filter.
+            if (startDate.HasValue)
+            {
+                query = query.Where(a =>
+                    a.AttendanceDate >= startDate.Value.Date);
+            }
+
+            // Apply end-date filter.
+            if (endDate.HasValue)
+            {
+                query = query.Where(a =>
+                    a.AttendanceDate < endDate.Value.Date.AddDays(1));
+            }
+
+            // Apply attendance-status filter.
+            if (!string.IsNullOrWhiteSpace(status) &&
+                Enum.TryParse<AttendanceStatus>(
+                    status, true, out var selectedStatus) &&
+                Enum.IsDefined(typeof(AttendanceStatus), selectedStatus))
+            {
+                query = query.Where(a =>
+                    a.Status == selectedStatus);
+            }
+
+            // Retrieve the filtered attendance records.
+            var attendanceRecords = await query
+                .OrderByDescending(a => a.AttendanceDate)
+                .ThenBy(a => a.Employee!.FullName)
+                .ToListAsync();
+
+            // Populate the employee dropdown with permitted employees.
+            var employeesQuery = _context.Users
+                .AsNoTracking()
+                .Where(u => u.Role != Role.Admin);
+
+            if (User.IsInRole("Manager"))
+            {
+                var currentUserId = User.FindFirstValue(
+                    ClaimTypes.NameIdentifier);
+
+                if (!int.TryParse(currentUserId, out int managerId))
+                {
+                    return Forbid();
+                }
+
+                var manager = await _context.Users
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Id == managerId);
+
+                if (manager == null)
+                {
+                    return Forbid();
+                }
+
+                employeesQuery = employeesQuery.Where(u =>
+                    u.Id == manager.Id ||
+                    (u.Role == Role.User &&
+                     u.Department == manager.Department));
+            }
+
+            ViewBag.Employees = await employeesQuery
+                .OrderBy(u => u.FullName)
+                .ToListAsync();
+
+            // Preserve selected filters.
+            ViewBag.SelectedEmployeeId = employeeId;
+            ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
+            ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
+            ViewBag.SelectedStatus = status;
+
+            // Summary cards reflect the filtered records.
+            ViewBag.TotalRecords = attendanceRecords.Count;
+            ViewBag.PresentCount = attendanceRecords.Count(a =>
+                a.Status == AttendanceStatus.Present);
+            ViewBag.AbsentCount = attendanceRecords.Count(a =>
+                a.Status == AttendanceStatus.Absent);
+            ViewBag.HalfDayCount = attendanceRecords.Count(a =>
+                a.Status == AttendanceStatus.HalfDay);
+            ViewBag.LeaveCount = attendanceRecords.Count(a =>
+                a.Status == AttendanceStatus.Leave);
+
+            return View(attendanceRecords);
+        }
+
         public async Task<IActionResult> EmployeeReport(string? search)
         {
             var usersQuery = _context.Users
@@ -258,6 +398,76 @@ namespace Workly.Controllers
                 departmentData,
                 roleData
             });
+        }
+
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> SalaryReport(
+    int? employeeId,
+    int? month,
+    int? year,
+    string? paymentStatus)
+        {
+            var query = _context.EmployeeSalaries
+                .AsNoTracking()
+                .Include(s => s.User)
+                .Where(s => s.User.Role != Role.Admin)
+                .AsQueryable();
+
+            // Filter by employee.
+            if (employeeId.HasValue)
+            {
+                query = query.Where(s => s.UserId == employeeId.Value);
+            }
+
+            // Filter by month.
+            if (month.HasValue && month.Value >= 1 && month.Value <= 12)
+            {
+                query = query.Where(s => s.Month == month.Value);
+            }
+
+            // Filter by year.
+            if (year.HasValue && year.Value >= 2000 && year.Value <= 2100)
+            {
+                query = query.Where(s => s.Year == year.Value);
+            }
+
+            // Filter by payment status.
+            if (!string.IsNullOrWhiteSpace(paymentStatus) &&
+                (paymentStatus == "Paid" || paymentStatus == "Pending"))
+            {
+                query = query.Where(s => s.PaymentStatus == paymentStatus);
+            }
+
+            var salaries = await query
+                .OrderByDescending(s => s.Year)
+                .ThenByDescending(s => s.Month)
+                .ThenBy(s => s.User.FullName)
+                .ToListAsync();
+
+            // Populate employee dropdown.
+            ViewBag.Employees = await _context.Users
+                .AsNoTracking()
+                .Where(u => u.Role != Role.Admin)
+                .OrderBy(u => u.FullName)
+                .ToListAsync();
+
+            // Preserve selected filters.
+            ViewBag.SelectedEmployeeId = employeeId;
+            ViewBag.SelectedMonth = month;
+            ViewBag.SelectedYear = year;
+            ViewBag.SelectedPaymentStatus = paymentStatus;
+
+            // Summary cards.
+            ViewBag.TotalRecords = salaries.Count;
+            ViewBag.TotalBasicSalary = salaries.Sum(s => s.BasicSalary);
+            ViewBag.TotalAllowances = salaries.Sum(s => s.Allowances);
+            ViewBag.TotalDeductions = salaries.Sum(s => s.Deductions);
+            ViewBag.TotalNetSalary = salaries.Sum(s => s.NetSalary);
+
+            ViewBag.PaidCount = salaries.Count(s => s.PaymentStatus == "Paid");
+            ViewBag.PendingCount = salaries.Count(s => s.PaymentStatus == "Pending");
+
+            return View(salaries);
         }
     }
 }

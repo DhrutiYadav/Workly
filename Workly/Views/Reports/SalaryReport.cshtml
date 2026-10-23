@@ -1,0 +1,270 @@
+﻿@model List<Workly.Models.EmployeeSalary>
+
+@{
+    ViewData["Title"] = "Salary Report";
+    var employees = ViewBag.Employees as List<Workly.Models.User>
+                    ?? new List<Workly.Models.User>();
+}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Salary Report</h2>
+
+        <a asp-action="Index" class="btn btn-secondary">
+            Back to Reports
+        </a>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Salary Records</h6>
+                    <h3>@ViewBag.TotalRecords</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Basic Salary</h6>
+                    <h3>₹@(((decimal)ViewBag.TotalBasicSalary).ToString("N2"))</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Net Salary</h6>
+                    <h3>₹@(((decimal)ViewBag.TotalNetSalary).ToString("N2"))</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 border-success">
+                <div class="card-body">
+                    <h6 class="text-muted">Paid Records</h6>
+                    <h4 class="text-success">@ViewBag.PaidCount</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 border-warning">
+                <div class="card-body">
+                    <h6 class="text-muted">Pending Records</h6>
+                    <h4 class="text-warning">@ViewBag.PendingCount</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Allowances</h6>
+                    <h5>₹@(((decimal)ViewBag.TotalAllowances).ToString("N2"))</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Deductions</h6>
+                    <h5>₹@(((decimal)ViewBag.TotalDeductions).ToString("N2"))</h5>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Filters -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Filter Salary Records</h5>
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="SalaryReport" method="get">
+                <div class="row g-3">
+
+                    <div class="col-md-3">
+                        <label class="form-label">Employee</label>
+
+                        <select name="employeeId" class="form-select">
+                            <option value="">All Employees</option>
+
+                            @foreach (var employee in employees)
+                            {
+                                if (ViewBag.SelectedEmployeeId != null &&
+                                    (int)ViewBag.SelectedEmployeeId == employee.Id)
+                                {
+                                    <option value="@employee.Id" selected>
+                                        @employee.FullName
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@employee.Id">
+                                        @employee.FullName
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label">Month</label>
+
+                        <select name="month" class="form-select">
+                            <option value="">All Months</option>
+
+                            @for (int m = 1; m <= 12; m++)
+                            {
+                                if (ViewBag.SelectedMonth != null &&
+                                    (int)ViewBag.SelectedMonth == m)
+                                {
+                                    <option value="@m" selected>
+                                        @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@m">
+                                        @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label">Year</label>
+
+                        <input type="number"
+                               name="year"
+                               class="form-control"
+                               value="@ViewBag.SelectedYear"
+                               min="2000"
+                               max="2100"
+                               placeholder="Year" />
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label">Payment Status</label>
+
+                        <select name="paymentStatus" class="form-select">
+                            <option value="">All Statuses</option>
+
+                            <option value="Paid"
+                                    selected="@(ViewBag.SelectedPaymentStatus == "Paid")">
+                                Paid
+                            </option>
+
+                            <option value="Pending"
+                                    selected="@(ViewBag.SelectedPaymentStatus == "Pending")">
+                                Pending
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3 d-flex align-items-end gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            Apply Filters
+                        </button>
+
+                        <a asp-action="SalaryReport"
+                           class="btn btn-outline-secondary">
+                            Clear
+                        </a>
+                    </div>
+
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- Salary Records Table -->
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0">Salary Records</h5>
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Employee</th>
+                            <th>Period</th>
+                            <th>Basic Salary</th>
+                            <th>Allowances</th>
+                            <th>Deductions</th>
+                            <th>Net Salary</th>
+                            <th>Payment Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var salary in Model)
+                            {
+                                <tr>
+                                    <td>@salary.User.FullName</td>
+
+                                    <td>
+                                        @(System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(salary.Month))
+                                        @salary.Year
+                                    </td>
+
+                                    <td>₹@salary.BasicSalary.ToString("N2")</td>
+                                    <td>₹@salary.Allowances.ToString("N2")</td>
+                                    <td>₹@salary.Deductions.ToString("N2")</td>
+
+                                    <td class="fw-bold">
+                                        ₹@salary.NetSalary.ToString("N2")
+                                    </td>
+
+                                    <td>
+                                        @if (salary.PaymentStatus == "Paid")
+                                        {
+                                            <span class="badge bg-success">Paid</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">
+                                                @salary.PaymentStatus
+                                            </span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center py-4">
+                                    No salary records found for the selected filters.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</div>
